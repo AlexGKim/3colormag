@@ -12,7 +12,9 @@ data {
 
 transformed data{
   cholesky_factor_cov[D*N] L;
+  real pv_sig;
   L = cholesky_decompose(meascov);
+  pv_sig=300./3e5;
 }
 
 parameters {
@@ -20,10 +22,15 @@ parameters {
   matrix[D, (N-1)] snparameters;
   vector[N-1] alpha;
 
-  real<lower=0> pv_sig;
   vector[D] pv_unit;
   real pv0_unit;
+
+  real<lower=0> dm_sig;
+  vector[D] dm_unit;
+  real dm0_unit;  
 }
+
+# Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
 
 transformed parameters {
 
@@ -45,7 +52,7 @@ transformed parameters {
 
   # prediction for Delta
   for (d in 1:D){
-    mn[d]= 5/log(10.)*(pz[d]/zcmb[d] - pz0/zcmb0);
+    mn[d]= 5/log(10.)*(pz[d]/zcmb[d] - pz0/zcmb0) + dm_sig*(dm_unit[d] - dm0_unit);
     for (n in 1:N-1){
       mn[d] = mn[d]+ alpha[n] * snparameters[d,n] ; 
     }
@@ -57,13 +64,18 @@ transformed parameters {
         mn[d+n*D]= snparameters[d,n];
       }
   } 
+
 }
 
 model {
-  target += normal_lpdf(pv_unit| 0, 1);
-  target += normal_lpdf(pv0_unit| 0, 1);
-  target += -(D+1)*log(pv_sig);
+
+  pv_unit ~ normal(0, 1);
+  pv0_unit ~ normal(0, 1);
+  dm_unit ~ normal(0, 1); 
+  dm0_unit ~ normal(0, 1);
+
   meas ~ multi_normal_cholesky(mn, L);
 
-  pv_sig ~ cauchy(300./1e5, 300./1e5);
+  dm_sig ~ cauchy(0.08, 0.08);
+
 }
