@@ -57,28 +57,40 @@ meascov = numpy.cov(mega,rowvar=True)
 zcmb0=zcmb[0]
 zcmb=zcmb[1:]
 
-for holdout in xrange(1,D+1):
 
-   data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0 , 'holdout': holdout}
+def main(args):
+   for holdout in xrange(int(args['minin']),int(args['maxin'])):
 
-   nchain =4
-   init = [{'snparameters' : snparameters, \
-      # 'pv_sig' : 300/3e5, \
-      'pv_unit': pv[1:],\
-      'pv0_unit': pv[0], \
-      'dm_sig' : numpy.median(master['dm_sig'],axis=0), \
-      'dm_unit':  dm[1:]/0.08,\
-      'dm0_unit': dm[0]/0.08, \
-      'alpha': numpy.median(master['alpha'],axis=0), \
-      'delta_holdout':  mega[holdout-1,0]
-      } \
-   for _ in range(nchain)]
+      data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0 , 'holdout': holdout}
 
-   sm = pystan.StanModel(file='jk.stan')
-   control = {'stepsize':1}
-   fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+      nchain =4
+      init = [{'snparameters' : snparameters, \
+         # 'pv_sig' : 300/3e5, \
+         'pv_unit': pv[1:],\
+         'pv0_unit': pv[0], \
+         'dm_sig' : numpy.median(master['dm_sig'],axis=0), \
+         'dm_unit':  dm[1:]/0.08,\
+         'dm0_unit': dm[0]/0.08, \
+         'alpha': numpy.median(master['alpha'],axis=0), \
+         'delta_holdout':  mega[holdout-1,0]
+         } \
+      for _ in range(nchain)]
 
-   output = open('jk{:03d}.pkl'.format(holdout),'wb')
-   pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
-   output.close()
-   print fit
+      sm = pystan.StanModel(file='jk.stan')
+      control = {'stepsize':1}
+      fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+
+      output = open('jk{:03d}.pkl'.format(holdout),'wb')
+      pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
+      output.close()
+      print fit
+
+if __name__=="__main__":
+  import argparse
+  parser = argparse.ArgumentParser( description = "mcmc with indeces" )
+  parser.add_argument( "minin"       , help = "minimum index"   )
+  parser.add_argument( "maxin"       , help = "maximum index"   )
+#  parser.add_argument( "--local"       , default = False, help = "Use local redshift catalog" )
+  args = parser.parse_args()
+  pdict=vars(args)
+  main(pdict)
