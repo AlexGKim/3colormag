@@ -12,12 +12,19 @@ import scipy
 import cPickle
 import matplotlib as mpl
 import sivel
-mpl.rcParams['font.size'] = 28
+
+from chainconsumer import ChainConsumer
+# mpl.rcParams['font.size'] = 28
 
 f = open('c2.pkl','rb')
 (fit,_) = pickle.load(f)
 
-from chainconsumer import ChainConsumer
+mega = numpy.concatenate((fit['alpha'],fit['dm_sig'][:,None]),axis=1)
+
 c = ChainConsumer()
-c.add_chain(fit['alpha'], parameters=["$\alpha_1$", "$\alpha_2$", "$\alpha_3$", "$\alpha_4$", "$\alpha_5$"])
-c.plotter.plot(filename="example.png", figsize="column", truth=mean)
+c.add_chain(mega, parameters= \
+    [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
+c.plotter.plot(filename="example.png", figsize="column", truth=numpy.zeros(6))
+
+table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
+print(table)

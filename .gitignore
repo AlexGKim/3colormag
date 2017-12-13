@@ -1,3 +1,10 @@
 *.pkl
 sivel.*
 SNF-0203-CABALLO2
+doc/.bib
+doc/*aux
+doc/*log
+doc/*pdf
+doc/*gz
+*png
+*out
