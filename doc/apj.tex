@@ -216,34 +216,60 @@ which has length $6(N-1)$.  The data covariance $C$ is given by the color analys
 the color analysis the per-SN parameters
 are not independent.  The parameters relative to an arbitrary reference supernova are independent.}
 
+The model has the following fundamental parameters that describe the underlying distribution of SN feature parameters.
+This top level of the hierarchical model is necessary to avoid Eddington bias and simultaneously constrain the multiple linear
+coefficients in our model for intrinsic grey-magnitude residuals.
+The population distribution parameters are
+\begin{center}
+\begin{tabular}{rccc}
+\hline
+Parameter & pdf & Description & \# parameters\\ \hline
+$\vec{\theta}_{\mathit{mn}}$ & flat  & distribution mean & 5\\
+$\vec{\theta}_{\sigma}$ &  $\text{Cauchy}(\vec{0},[100,25,70,4,0.1])$; $>0$& distribution s.d. & 5\\
+$\vec{\sigma}_{\theta}$ & $\text{Cauchy}(\vec{0},[100,25,70,4,0.1])$; $>0$  & covariance s.d. & 5\\
+$C_{\theta}$ & $\text{LKJ}(2)$ & feature correlation & 10\\
+\hline
+\end{tabular}
+\end{center}
+This amounts to $25$ parameters.  The Cauchy priors are individualized based on the observed standard deviation of each feature.
+
 The model has the following fundamental parameters:
 \begin{center}
 \begin{tabular}{rccc}
 \hline
-Parameter & Prior & Description & \# parameters\\ \hline
+Parameter & pdf & Description & \# parameters\\ \hline
 $\sigma_M$ & $\text{Cauchy}(0.08, 0.08)$; $>0$ & intrinsic dispersion & 1\\
-$\vec{\theta}_0$ & Flat & $\overrightarrow{EW}_{Ca\,.0}$ features & $N-1$ \\
-$\vec{\theta}_1$ & Flat& $\overrightarrow{EW}_{Si\,.0}$ features & $N-1$ \\
-$\vec{\theta}_2$ & Flat& $\vec{\lambda}_{Si\,.0}$ features & $N-1$ \\
-$\vec{\theta}_3$ & Flat& $\vec{x}_{1\,.0}$ features & $N-1$ \\
-$\vec{\theta}_4$ & Flat& $\sigma_p\phi_{\hat{V}}  \vec{p}_{.0} $ features & $N-1$ \\
+$\vec{\theta}_{EW_{Ca}}$ & Eq.~\ref{feature:pdf} & ${EW}_{Ca}$ features & $N-1$ \\
+$\vec{\theta}_{EW_{Si}}$ & Eq.~\ref{feature:pdf}& ${EW}_{Si}$ features & $N-1$ \\
+$\vec{\theta}_{\lambda_{Si}}$ &Eq.~\ref{feature:pdf}& ${\lambda}_{Si}$ features & $N-1$ \\
+$\vec{\theta}_{x_1}$ & Eq.~\ref{feature:pdf}& ${x}_{1}$ features & $N-1$ \\
+$\vec{\theta}_{p}$ & Eq.~\ref{feature:pdf}& $\sigma_p\phi_{\hat{V}}  {p} $ features & $N-1$ \\
 $\vec{\alpha}$ & Flat& feature cofactors & 5 \\
 \hline
 \end{tabular}
 \end{center}
-This amounts to $5N+1$ parameters.  For $N\ge 2$ there are more data than parameters.
+The feature pdf's are independent for each supernova, such that SN indexed by $i$ is associated with the parameters
+$\vec{\theta}^{(i)}=\left\{\theta_{EW_{Ca}}[i], \theta_{EW_{Si}}[i], \theta_{\lambda_{Si}}[i], \theta_{x_1}[i], \theta_{p}[i] \right\}$
+that are drawn as
+\begin{align}
+\vec{\theta}^{(i)}_0 & \sim \mathcal{N}(\vec{\theta}_{\mathit{mn}}, \vec{\theta}_{\sigma})  \nonumber \\
+\vec{\theta}^{(i)} & \sim \mathcal{N}(\vec{\theta}^{(i)}_0, C_{\theta}) .
+\label{feature:pdf}
+\end{align}
+Visual inspection of the input feature distributions finds that they are not grossly multimodal.
+These are $5N+1$ of these parameters.
 
 For expository and computational convenience the following parameters are introduced:  
 \begin{center}
 \begin{tabular}{rccc}
 \hline
-Parameter & Prior & Description & \# parameters\\ \hline
+Parameter & pdf & Description & \# parameters\\ \hline
 $\vec{v}$ & $\mathcal{N}(0,10^{-3})$ &  peculiar velocity & N \\\
 $ \overrightarrow{dm}$ &  $\mathcal{N}(0,\sigma_M)$  &  peculiar magnitude & N \\
 \hline
 \end{tabular}
 \end{center}
-These parameters are not uniquely constrained.
+These parameters are not uniquely constrained but manifest dispersion.
 
 The following derived parameters are defined from the above parameters:
 \begin{center}
@@ -251,8 +277,8 @@ The following derived parameters are defined from the above parameters:
 \hline
 Parameter & Definition & Description\\ \hline
 $\overrightarrow{\delta z}$ & $\sqrt{(1+\vec{v})/ (1-\vec{v})}-1$ & peculiar redshift\\
-$ \mu[i]; 0 \le i < N-1$ & $\sum_{k=0}^{4} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right)$ & Hubble residual \\
-$ \mu[N:6(N-1)]$ & $\left\{\vec{\theta}_0,\vec{\theta}_1, \vec{\theta}_2, \vec{\theta}_3,\vec{\theta}_4 \right\}$ &  features \\
+$ \mu[i]; 0 \le i < N-1$ & $\sum_{k=0}^{4} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right)$ & residual from reference\\
+$ \mu[N:6(N-1)]$ & $\left\{\vec{\theta}_{EW_{Ca}},\vec{\theta}_{EW_{Si}}, \vec{\theta}_{\lambda_{Si}}, \vec{\theta}_{x_1},\vec{\theta}_{p} \right\}$ &  features \\
 \hline
 \end{tabular}
 \end{center}

@@ -8,6 +8,10 @@ import sivel
 import matplotlib.pyplot as plt
 from chainconsumer import ChainConsumer
 
+# input from first try
+f = open('c2.pkl.orig','rb')
+(first,_) = pickle.load(f)
+
 # input from previous fit
 f = open('fix3_x1.pkl','rb')
 (fit,_) = pickle.load(f)
@@ -56,18 +60,29 @@ meascov = numpy.cov(mega,rowvar=True)
 zcmb0=zcmb[0]
 zcmb=zcmb[1:]
 
-
+########  Changes ########
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0  }
 
+zerr0=zerr[0]
+zerr = zerr[1:]
+data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, 'zerr':zerr, 'zerr0': zerr0  }
+##########################
+
 nchain =8
-init = [{'snparameters' : snparameters, \
-   # 'pv_sig' : 300/3e5, \
-   'pv_unit': pv[1:],\
+init = [{'pv_unit': pv[1:],\
    'pv0_unit': pv[0], \
    'dm_sig' : 0.08, \
    'dm_unit':  dm[1:]/0.08,\
    'dm0_unit': dm[0]/0.08, \
-   'alpha': numpy.zeros(5)
+   'alpha': numpy.median(first['alpha'],axis=0) , \
+   'z_true': zcmb, \
+   'z0_true': zcmb0, \
+   'L_snp_cor': numpy.identity(N-1), \
+   'L_snp_sig': numpy.std(snparameters,axis=0)/numpy.sqrt(2) ,\
+   'snp_mn': numpy.mean(snparameters,axis=0), \
+   'snp_sig': numpy.std(snparameters,axis=0)/numpy.sqrt(2), \
+   'snparameters_zero' : snparameters, \
+   'snparameters' : snparameters, \
    } \
 for _ in range(nchain)]
 

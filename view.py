@@ -14,7 +14,6 @@ import matplotlib as mpl
 import sivel
 
 from chainconsumer import ChainConsumer
-# mpl.rcParams['font.size'] = 28
 
 f = open('c2.pkl','rb')
 (fit,_) = pickle.load(f)
