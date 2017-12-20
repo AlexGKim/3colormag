@@ -5,8 +5,6 @@ import cPickle
 import numpy
 import pystan
 import sivel
-import matplotlib.pyplot as plt
-from chainconsumer import ChainConsumer
 
 # input from first try
 f = open('c2.pkl.orig','rb')
@@ -15,6 +13,10 @@ f = open('c2.pkl.orig','rb')
 # input from previous fit
 f = open('fix3_x1.pkl','rb')
 (fit,_) = pickle.load(f)
+
+# scaling parameters
+cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
+alpha_scale = numpy.array([1e-3, 5e-3, 1e-3, 0.05, 1])
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
@@ -43,11 +45,16 @@ for index in xrange(1,D):
    fit['ev_sig']*fit['ev'][:,2]* (fit['mag_int_raw'][:,index]-fit['mag_int_raw'][:,0])])
 mega = numpy.array(mega)
 
-
 D = D-1
 
 # initial condition of the sn parameters are the measurement
 snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
+snparameters_sig = numpy.std(snparameters,axis=0)
+snparameters_mn = numpy.mean(snparameters,axis=0)
+
+# print snparameters_sig
+# print snparameters_mn
+
 
 mega = numpy.reshape(mega,(D*N,mega.shape[2]),order='F')
 print "Showing that it is (feature 1 SN1, feature 1 SN2, ... feature 1 SN D, feature 2 SN 1, ...)"
@@ -65,30 +72,32 @@ data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':z
 
 zerr0=zerr[0]
 zerr = zerr[1:]
-data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, 'zerr':zerr, 'zerr0': zerr0  }
+data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
+   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau, 'alpha_scale': alpha_scale}
 ##########################
 
-nchain =8
-init = [{'pv_unit': pv[1:],\
+nchain =4
+init = [{
+   'alpha': numpy.median(first['alpha'],axis=0)/alpha_scale , \
+   'pv_unit': pv[1:],\
    'pv0_unit': pv[0], \
-   'dm_sig' : 0.08, \
+   'dm_sig_unif' : 0., \
    'dm_unit':  dm[1:]/0.08,\
    'dm0_unit': dm[0]/0.08, \
-   'alpha': numpy.median(first['alpha'],axis=0) , \
    'z_true': zcmb, \
    'z0_true': zcmb0, \
+   'snparameters_alpha' : numpy.zeros((D,N-1)), \
    'L_snp_cor': numpy.identity(N-1), \
-   'L_snp_sig': numpy.std(snparameters,axis=0)/numpy.sqrt(2) ,\
-   'snp_mn': numpy.mean(snparameters,axis=0), \
-   'snp_sig': numpy.std(snparameters,axis=0)/numpy.sqrt(2), \
-   'snparameters_zero' : snparameters, \
-   'snparameters' : snparameters, \
+   'L_snp_sig_unif': numpy.arctan(snparameters_sig/cauchy_tau) ,\
+   'snp_mn': snparameters_mn, \
+   # 'snp_sig_unif': numpy.arctan(snparameters_sig*numpy.sqrt(0.9)/cauchy_tau), \
+   'snparameters': snparameters\
    } \
 for _ in range(nchain)]
 
 sm = pystan.StanModel(file='c2.stan')
 control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=4000, chains=nchain,control=control,init=init, thin=1)
+fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
 pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
