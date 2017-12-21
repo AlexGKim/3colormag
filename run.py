@@ -7,8 +7,8 @@ import pystan
 import sivel
 
 # input from first try
-f = open('c2.pkl.orig','rb')
-(first,_) = pickle.load(f)
+# f = open('c2.pkl.orig','rb')
+# (first,_) = pickle.load(f)
 
 # input from previous fit
 f = open('fix3_x1.pkl','rb')
@@ -73,31 +73,30 @@ data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':z
 zerr0=zerr[0]
 zerr = zerr[1:]
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
-   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau, 'alpha_scale': alpha_scale}
+   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau} #, 'alpha_scale': alpha_scale}
 ##########################
 
 nchain =4
 init = [{
-   'alpha': numpy.median(first['alpha'],axis=0)/alpha_scale , \
-   'pv_unit': pv[1:],\
-   'pv0_unit': pv[0], \
+   'alpha': numpy.zeros(N-1) , \
+   'pv_unit': numpy.zeros(D) ,\
+   'pv0_unit':  0 ,\
    'dm_sig_unif' : 0., \
-   'dm_unit':  dm[1:]/0.08,\
-   'dm0_unit': dm[0]/0.08, \
+   'dm_unit':   numpy.random.normal(0, 1, size=D) ,\
+   'dm0_unit':  0. ,\
    'z_true': zcmb, \
    'z0_true': zcmb0, \
-   'snparameters_alpha' : numpy.zeros((D,N-1)), \
-   'L_snp_cor': numpy.identity(N-1), \
-   'L_snp_sig_unif': numpy.arctan(snparameters_sig/cauchy_tau) ,\
-   'snp_mn': snparameters_mn, \
-   # 'snp_sig_unif': numpy.arctan(snparameters_sig*numpy.sqrt(0.9)/cauchy_tau), \
+   # 'snparameters_alpha' : (snparameters - snparameters_mn[:,None])/snparameters_sig, \
+   # 'L_snp_cor': numpy.identity(N-1), \
+   # 'L_snp_sig_unif': numpy.arctan(snparameters_sig/cauchy_tau) ,\
+   # 'snp_mn': snparameters_mn, \
    'snparameters': snparameters\
    } \
 for _ in range(nchain)]
 
 sm = pystan.StanModel(file='c2.stan')
 control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+fit = sm.sampling(data=data, iter=1000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
 pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)

@@ -10,7 +10,7 @@ data {
   real zerr0;
 
   vector[N-1] cauchy_tau;                 // tau of the cauchy prior of distributions of parameters
-  vector[N-1] alpha_scale;                // scaling to alpha to try to get sigma around 1
+  // vector[N-1] alpha_scale;                // scaling to alpha to try to get sigma around 1
 }
 
 transformed data{
@@ -62,7 +62,7 @@ model {
   vector[D] pz;                                 // peculiar redshift
   real pz0;
 
-  vector[N-1] alpha_rescale;
+  // vector[N-1] alpha_rescale;
   real dm_sig;
   real fiveoverlog10;
   real pz0term;
@@ -77,7 +77,7 @@ model {
   pz0 = sqrt((pv0+1) / (1-pv0))-1;
   pz0term = fiveoverlog10 * pz0/z0_true;
 
-  alpha_rescale = alpha .* alpha_scale;
+  // alpha_rescale = alpha .* alpha_scale;
   dm_sig = (0.08+0.08*tan(dm_sig_unif));
   dm0term = dm_sig*dm0_unit;
 
@@ -85,15 +85,14 @@ model {
   for (d in 1:D){           //for each supernova pair
   // prediction for Delta
     // mn[d] =  5/log(10.)*(pz[d]/z_true[d] - pz0/z0_true) + dm_sig*(dm_unit[d] - dm0_unit) + dot_product(alpha_rescale, snparameters[d]);
-    mn[d] =  fiveoverlog10 * pz[d]/z_true[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha_rescale, snparameters[d]);
+    mn[d] =  fiveoverlog10 * pz[d]/z_true[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha, snparameters[d]);
   // prediction for features
     for (n in 1:N-1){
       mn[d+n*D]= snparameters[d,n];
     }
   }
 
-
-  pv_unit ~ normal(0, 1);                       // peculiar velocity
+  pv_unit ~ normal(0, 1);                         // peculiar velocity
   pv0_unit ~ normal(0, 1);
   // dm_sig ~ cauchy(0.08, 0.08);                  // peculiar magnitude
   dm_sig_unif ~ uniform(-pi()/4, pi()/2);
