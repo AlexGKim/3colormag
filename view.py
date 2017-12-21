@@ -17,21 +17,84 @@ from chainconsumer import ChainConsumer
 
 cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
 
+# input from data
+pkl_file = open('gege_data.pkl', 'r')
+data = pickle.load(pkl_file)
+pkl_file.close()
+sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
+
+# input from results
 f = open('c2.pkl','rb')
 (fit,_) = pickle.load(f)
 
-mega = numpy.concatenate((fit['alpha'],0.08*(1+fit['dm_sig_unif'][:,None])),axis=1)
+def orig():
+    f = open('c2.orig.pkl','rb')
+    (fit,_) = pickle.load(f)
+    c = ChainConsumer()
+    c.add_chain(numpy.concatenate((fit['alpha'],fit['dm_sig'][:,None]),axis=1), parameters= \
+        [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
+    fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
+    fig.savefig("top.orig.pdf",bbox_inches='tight')
+    table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
+    print(table)
+    dm = fit['dm_sig'][:,None]*fit['dm_unit']
+    plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
+    plt.legend()
+    plt.xlabel(r'$dm$')
+    plt.savefig("top_m.pdf",bbox_inches='tight')
 
-c = ChainConsumer()
-c.add_chain(mega, parameters= \
-    [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
-fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
-fig.savefig("example.pdf",bbox_inches='tight')
+    c= ChainConsumer()
+    c.add_chain(numpy.median(fit['snparameters'],axis=0), \
+        parameters= [r"$ {EW_{Ca}}$", r"${EW_{Si}}$", r"${\lambda_{Si}}$", r"${x_1}$", r"${A_{V,p}}$"], \
+        name='Servant')
+    fig = c.plotter.plot(figsize="column", truth=numpy.zeros(5))
+    for ax in fig.axes:
+        ax.xaxis.set_tick_params(labelsize=9)
+        ax.xaxis.label.set_size(9)
+        ax.yaxis.set_tick_params(labelsize=9)
+        ax.yaxis.label.set_size(9)
+    fig.savefig("top_snp.orig.pdf",bbox_inches='tight')
+    table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
+    print(table)
 
-print numpy.std(fit['alpha'],axis=0)
+def top():
+    dm_sig = 0.08*(1+fit['dm_sig_unif'])
+    c = ChainConsumer()
+    c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
+        [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
+    fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
+    fig.savefig("top.pdf",bbox_inches='tight')
+    table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
+    print(table)
+    plt.clf()
+    plt.hist(((fit['z_true']-zcmb[None,1:])/zerr[None,1:]).flatten(),bins=50)
+    plt.xlabel(r'$z$ residual pull')
+    plt.ylabel(r'posterior stack')
+    plt.savefig("top_z.pdf",bbox_inches='tight')
+    plt.clf()
+    dm = dm_sig[:,None]*fit['dm_unit']
+    plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
+    plt.legend()
+    plt.xlabel(r'$dm$')
+    plt.savefig("top_m.pdf",bbox_inches='tight')
+    c= ChainConsumer()
+    c.add_chain(numpy.median(fit['snparameters'],axis=0), \
+        parameters= [r"$ {EW_{Ca}}$", r"${EW_{Si}}$", r"${\lambda_{Si}}$", r"${x_1}$", r"${A_{V,p}}$"], \
+        name='Servant')
+    fig = c.plotter.plot(figsize="column", truth=numpy.zeros(5))
+    for ax in fig.axes:
+        ax.xaxis.set_tick_params(labelsize=9)
+        ax.xaxis.label.set_size(9)
+        ax.yaxis.set_tick_params(labelsize=9)
+        ax.yaxis.label.set_size(9)
+    fig.savefig("top_snp.pdf",bbox_inches='tight')
 
-table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
-print(table)
+# orig()
+top()
+
+wefew
+
+    
 
 
 c= ChainConsumer()

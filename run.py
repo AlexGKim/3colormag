@@ -16,7 +16,7 @@ f = open('fix3_x1.pkl','rb')
 
 # scaling parameters
 cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
-alpha_scale = numpy.array([1e-3, 5e-3, 1e-3, 0.05, 1])
+alpha_scale = numpy.array([1.9e-3, 7.2e-3, 2.6e-3, 0.051, 1.7])  # 1/snparameters_sig*.05
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
@@ -53,6 +53,9 @@ snparameters_sig = numpy.std(snparameters,axis=0)
 snparameters_mn = numpy.mean(snparameters,axis=0)
 
 # print snparameters_sig
+# print 1/snparameters_sig*.05
+
+# wefwef
 # print snparameters_mn
 
 
@@ -73,17 +76,17 @@ data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':z
 zerr0=zerr[0]
 zerr = zerr[1:]
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
-   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau} #, 'alpha_scale': alpha_scale}
+   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau, 'alpha_scale': alpha_scale}
 ##########################
 
 nchain =4
 init = [{
    'alpha': numpy.zeros(N-1) , \
-   'pv_unit': numpy.zeros(D) ,\
-   'pv0_unit':  0 ,\
+   'pv_unit': numpy.abs(numpy.random.normal(0, 1, size=D))* pv[1:] ,\
+   'pv0_unit': numpy.abs(numpy.random.normal(0, 1))* pv[0] ,\
    'dm_sig_unif' : 0., \
-   'dm_unit':   numpy.random.normal(0, 1, size=D) ,\
-   'dm0_unit':  0. ,\
+   'dm_unit':   numpy.abs(numpy.random.normal(0, 1, size=D)) * pv[1:] ,\
+   'dm0_unit':  numpy.abs(numpy.random.normal(0, 1))* pv[0] ,\
    'z_true': zcmb, \
    'z0_true': zcmb0, \
    # 'snparameters_alpha' : (snparameters - snparameters_mn[:,None])/snparameters_sig, \
@@ -96,7 +99,7 @@ for _ in range(nchain)]
 
 sm = pystan.StanModel(file='c2.stan')
 control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=1000, chains=nchain,control=control,init=init, thin=1)
+fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
 pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
