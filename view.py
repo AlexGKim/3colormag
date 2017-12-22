@@ -15,7 +15,8 @@ import sivel
 
 from chainconsumer import ChainConsumer
 
-cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
+param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
+
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
@@ -67,11 +68,11 @@ def top():
     table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
     print(table)
     plt.clf()
-    plt.hist(((fit['z_true']-zcmb[None,1:])/zerr[None,1:]).flatten(),bins=50)
-    plt.xlabel(r'$z$ residual pull')
-    plt.ylabel(r'posterior stack')
-    plt.savefig("top_z.pdf",bbox_inches='tight')
-    plt.clf()
+    # plt.hist(((fit['z_true']-zcmb[None,1:])/zerr[None,1:]).flatten(),bins=50)
+    # plt.xlabel(r'$z$ residual pull')
+    # plt.ylabel(r'posterior stack')
+    # plt.savefig("top_z.pdf",bbox_inches='tight')
+    # plt.clf()
     dm = dm_sig[:,None]*fit['dm_unit']
     plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
     plt.legend()
@@ -89,26 +90,30 @@ def top():
         ax.yaxis.label.set_size(9)
     fig.savefig("top_snp.pdf",bbox_inches='tight')
 
-# orig()
-top()
+def population():
+    c= ChainConsumer()
+    c.add_chain(numpy.concatenate((fit['snp_mn'],4*param_sd*numpy.tan(fit['L_snp_sig_unif'])),axis=1), parameters= \
+        [r"$\langle {EW_{Ca}}\rangle$", r"$\langle{EW_{Si}}\rangle$", \
+        r"$\langle{\lambda_{Si}}\rangle$", r"$\langle{x_1}\rangle$", r"$\langle{A_{V,p}}\rangle$", \
+        r"$\sigma_{{EW_{Ca}}}$", r"$\sigma_{{EW_{Si}}}$", r"$\sigma_{{\lambda_{Si}}}$", r"$\sigma_{{x_1}}$", r"$\sigma_{{A_{V,p}}}$"], \
+        name='Servant')
+    fig = c.plotter.plot(figsize="column", truth=numpy.zeros(10))
+    for ax in fig.axes:
+        ax.xaxis.set_tick_params(labelsize=7)
+        ax.xaxis.label.set_size(7)
+        ax.yaxis.set_tick_params(labelsize=7)
+        ax.yaxis.label.set_size(7)
+    fig.savefig("population.pdf",bbox_inches='tight')
 
+# orig()
+# top()
+population()
 wefew
 
     
 
 
-c= ChainConsumer()
-c.add_chain(numpy.concatenate((fit['snp_mn'],cauchy_tau*numpy.tan(fit['L_snp_sig_unif'])),axis=1), parameters= \
-    [r"$\langle {EW_{Ca}}\rangle$", r"$\langle{EW_{Si}}\rangle$", \
-    r"$\langle{\lambda_{Si}}\rangle$", r"$\langle{x_1}\rangle$", r"$\langle{A_{V,p}}\rangle$",     r"$\sigma_{{EW_{Ca}}}$", r"$\sigma_{{EW_{Si}}}$", r"$\sigma_{{\lambda_{Si}}}$", r"$\sigma_{{x_1}}$", r"$\sigma_{{A_{V,p}}}$"], \
-    name='Servant')
-fig = c.plotter.plot(figsize="column", truth=numpy.zeros(10))
-for ax in fig.axes:
-    ax.xaxis.set_tick_params(labelsize=7)
-    ax.xaxis.label.set_size(7)
-    ax.yaxis.set_tick_params(labelsize=7)
-    ax.yaxis.label.set_size(7)
-fig.savefig("example2.pdf",bbox_inches='tight')
+
 
 # c= ChainConsumer()
 # c.add_chain(numpy.concatenate((fit['snp_sig_unif'],fit['L_snp_sig_unif']),axis=1), parameters= \

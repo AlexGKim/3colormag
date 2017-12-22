@@ -25,10 +25,6 @@ data = pickle.load(pkl_file)
 pkl_file.close()
 sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
 
-print zerr[numpy.argmax(zerr/zcmb)], zcmb[numpy.argmax(zerr/zcmb)]
-print numpy.sort(zerr)
-wfe
-
 # parameters
 N = 6
 D = fit['Delta'].shape[1]
@@ -57,13 +53,6 @@ snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
 snparameters_sig = numpy.std(snparameters,axis=0)
 snparameters_mn = numpy.mean(snparameters,axis=0)
 
-# print snparameters_sig
-# print 1/snparameters_sig*.05
-
-# wefwef
-# print snparameters_mn
-
-
 mega = numpy.reshape(mega,(D*N,mega.shape[2]),order='F')
 print "Showing that it is (feature 1 SN1, feature 1 SN2, ... feature 1 SN D, feature 2 SN 1, ...)"
 print fit['Delta'][0,1]-fit['Delta'][0,0],fit['Delta'][0,2]-fit['Delta'][0,0], fit['EW'][0,1,0]-fit['EW'][0,0,0]
@@ -75,16 +64,13 @@ meascov = numpy.cov(mega,rowvar=True)
 zcmb0=zcmb[0]
 zcmb=zcmb[1:]
 
-########  Changes ########
-# data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0  }
-
 zerr0=zerr[0]
 zerr = zerr[1:]
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
    'zerr':zerr, 'zerr0': zerr0, 'param_sd': param_sd}
-##########################
 
-nchain =4
+
+nchain =8
 init = [{
    'alpha': numpy.zeros(N-1) , \
    'pv_unit': pv[1:] ,\
@@ -92,19 +78,19 @@ init = [{
    'dm_sig_unif' : 0., \
    'dm_unit':   numpy.arctan(dm[1:]/0.08*0.25),\
    'dm0_unit':  numpy.arctan(dm[0]/0.08*0.25) ,\
-   # 'z_true': zcmb, \
-   # 'z0_true': zcmb0, \
-   # 'snparameters_alpha' : (snparameters - snparameters_mn[:,None])/snparameters_sig, \
-   # 'L_snp_cor': numpy.identity(N-1), \
-   # 'L_snp_sig_unif': numpy.arctan(snparameters_sig/cauchy_tau) ,\
-   # 'snp_mn': snparameters_mn, \
-   'snparameters': snparameters\
+   # # 'z_true': zcmb, \
+   # # 'z0_true': zcmb0, \
+   'snparameters_alpha' : (snparameters - snparameters_mn[None,:])/(snparameters_sig/ 2), \
+   'L_snp_cor': numpy.identity(N-1), \
+   'L_snp_sig_unif': numpy.arctan(snparameters_sig / 2 /(4*param_sd)) ,\
+   'snp_mn': snparameters_mn \
+   # 'snparameters': snparameters\
    } \
 for _ in range(nchain)]
 
 sm = pystan.StanModel(file='c2.stan')
 control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=1000, chains=nchain,control=control,init=init, thin=1)
+fit = sm.sampling(data=data, iter=4000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
 pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)

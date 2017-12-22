@@ -6,7 +6,7 @@ data {
   matrix[D*N, D*N] meascov;               // Feature Data covariance
   vector[D] zcmb;                         // Redshift Data
   real zcmb0;
-  vector[D] zerr;                         // Redshift Uncertainty
+  vector[D] zerr;                         // Redshift Uncertainty UNUSED FOR THE MOMENT
   real zerr0;
 
   // vector[N-1] cauchy_tau;              // tau of the cauchy prior of distributions of parameters
@@ -43,29 +43,29 @@ parameters {
   vector[D] dm_unit;
   real dm0_unit; 
 
-  // vector[D] z_true;                               // CMB redshift
+  // vector[D] z_true;                               // CMB redshift UNUSED BECAUSE OF LARGE Z ERRORS
   // real z0_true;
 
-  // vector[N-1] snparameters_alpha[D];           // SN parameters in linear independent form
-  // cholesky_factor_corr[N-1] L_snp_cor;         // correlation matrix of SN parameters
-  // vector<lower=0, upper=pi()/2>[N-1] L_snp_sig_unif;         // sigma of the covariance matrix for SN parameters
-  // vector[N-1] snp_mn;                          // distribution of parameters mn
+  vector[N-1] snparameters_alpha[D];           // SN parameters in linear independent form
+  cholesky_factor_corr[N-1] L_snp_cor;         // correlation matrix of SN parameters
+  vector<lower=0, upper=pi()/2>[N-1] L_snp_sig_unif;         // sigma of the covariance matrix for SN parameters
+  vector[N-1] snp_mn;                          // distribution of parameters mn
 
-  vector[N-1] snparameters[D];
+  // vector[N-1] snparameters[D];
 }
 
-// transformed parameters{
-//   vector[N-1] snparameters[D];      // SN parameters covariance term
+transformed parameters{
+  vector[N-1] snparameters[D];      // SN parameters covariance term
 
-//   {
-//     matrix[N-1, N-1] L_snp_cov;                   // covariance matrix of SN parameters
-//     // feature covariance
-//     L_snp_cov = diag_pre_multiply(cauchy_tau .* tan(L_snp_sig_unif), L_snp_cor);
-//     for (d in 1:D){           //for each supernova pair
-//       snparameters[d] =  snp_mn + L_snp_cov * snparameters_alpha[d];
-//     }
-//   }
-// }
+  {
+    matrix[N-1, N-1] L_snp_cov;                   // covariance matrix of SN parameters
+    // feature covariance
+    L_snp_cov = diag_pre_multiply(cauchy_tau .* tan(L_snp_sig_unif), L_snp_cor);
+    for (d in 1:D){           //for each supernova pair
+      snparameters[d] =  snp_mn + L_snp_cov * snparameters_alpha[d];
+    }
+  }
+}
 
 model {
 
@@ -95,7 +95,6 @@ model {
   // data prediction
   for (d in 1:D){           //for each supernova pair
   // prediction for Delta
-    // mn[d] =  5/log(10.)*(pz[d]/z_true[d] - pz0/z0_true) + dm_sig*(dm_unit[d] - dm0_unit) + dot_product(alpha_rescale, snparameters[d]);
     mn[d] =  fiveoverlog10 * pz[d]/zcmb[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha_rescale, snparameters[d]);
   // prediction for features
     for (n in 1:N-1){
@@ -109,11 +108,11 @@ model {
   dm_unit ~ normal(0, 1); 
   dm0_unit ~ normal(0, 1);
 
-  // L_snp_cor ~ lkj_corr_cholesky(2.);            // feature covariance
-  // L_snp_sig_unif ~ uniform(0,pi()/2);
-  // for (d in 1:D){
-  //   snparameters_alpha[d] ~ normal(0,1);       
-  // }
+  L_snp_cor ~ lkj_corr_cholesky(2.);            // feature covariance
+  L_snp_sig_unif ~ uniform(0,pi()/2);
+  for (d in 1:D){
+    snparameters_alpha[d] ~ normal(0,1);       
+  }
 
   meas ~ multi_normal_cholesky(mn, L);          // feature data
   // zcmb ~ normal(z_true,zerr);                   // redshift data
