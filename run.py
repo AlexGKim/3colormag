@@ -15,14 +15,19 @@ f = open('fix3_x1.pkl','rb')
 (fit,_) = pickle.load(f)
 
 # scaling parameters
-cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
-alpha_scale = numpy.array([1.9e-3, 7.2e-3, 2.6e-3, 0.051, 1.7])  # 1/snparameters_sig*.05
+# cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
+# alpha_scale = numpy.array([1.9e-3, 7.2e-3, 2.6e-3, 0.051, 1.7])  # 1/snparameters_sig*.05
+param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
 data = pickle.load(pkl_file)
 pkl_file.close()
 sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
+
+print zerr[numpy.argmax(zerr/zcmb)], zcmb[numpy.argmax(zerr/zcmb)]
+print numpy.sort(zerr)
+wfe
 
 # parameters
 N = 6
@@ -71,24 +76,24 @@ zcmb0=zcmb[0]
 zcmb=zcmb[1:]
 
 ########  Changes ########
-data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0  }
+# data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0  }
 
 zerr0=zerr[0]
 zerr = zerr[1:]
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
-   'zerr':zerr, 'zerr0': zerr0, 'cauchy_tau': cauchy_tau, 'alpha_scale': alpha_scale}
+   'zerr':zerr, 'zerr0': zerr0, 'param_sd': param_sd}
 ##########################
 
 nchain =4
 init = [{
    'alpha': numpy.zeros(N-1) , \
-   'pv_unit': numpy.abs(numpy.random.normal(0, 1, size=D))* pv[1:] ,\
-   'pv0_unit': numpy.abs(numpy.random.normal(0, 1))* pv[0] ,\
+   'pv_unit': pv[1:] ,\
+   'pv0_unit': pv[0] ,\
    'dm_sig_unif' : 0., \
-   'dm_unit':   numpy.abs(numpy.random.normal(0, 1, size=D)) * pv[1:] ,\
-   'dm0_unit':  numpy.abs(numpy.random.normal(0, 1))* pv[0] ,\
-   'z_true': zcmb, \
-   'z0_true': zcmb0, \
+   'dm_unit':   numpy.arctan(dm[1:]/0.08*0.25),\
+   'dm0_unit':  numpy.arctan(dm[0]/0.08*0.25) ,\
+   # 'z_true': zcmb, \
+   # 'z0_true': zcmb0, \
    # 'snparameters_alpha' : (snparameters - snparameters_mn[:,None])/snparameters_sig, \
    # 'L_snp_cor': numpy.identity(N-1), \
    # 'L_snp_sig_unif': numpy.arctan(snparameters_sig/cauchy_tau) ,\
@@ -99,7 +104,7 @@ for _ in range(nchain)]
 
 sm = pystan.StanModel(file='c2.stan')
 control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+fit = sm.sampling(data=data, iter=1000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
 pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
