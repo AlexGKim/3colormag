@@ -17,12 +17,16 @@ from chainconsumer import ChainConsumer
 
 param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
 
-
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
 data = pickle.load(pkl_file)
 pkl_file.close()
 sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
+
+# input from color analysis
+pkl_file = open('fix3_x1.pkl', 'r')
+color = pickle.load(pkl_file)
+pkl_file.close()
 
 # input from results
 f = open('c2.pkl','rb')
@@ -111,7 +115,7 @@ def top():
     # snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
 
     # c.add_chain(snparameters,name='Data')
-    
+
     fig = c.plotter.plot(figsize="column", truth=numpy.zeros(5))
     for ax in fig.axes:
         ax.xaxis.set_tick_params(labelsize=9)
@@ -139,17 +143,36 @@ def population():
         ax.yaxis.label.set_size(7)
     fig.savefig("population.pdf",bbox_inches='tight')
 
-    dm_sig = 0.08*(1+numpy.tan(fit['dm_sig_unif']))
-    c = ChainConsumer()
-    c.add_chain([fit['alpha'][:,-1],fit['L_snp_sig_unif'][:,-1], dm_sig], parameters= \
-        [r"$\alpha_{A_{V,p}}$",r"$\sigma_{{A_{V,p}}}$",r'$\sigma_M$'],name='Master')
-    fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(3))
-    fig.savefig("population_p.pdf",bbox_inches='tight')
+def childress():
+
+
+    # get Childress Masses
+    f = open('MJC_compile_SNdata.pkl','r')
+    gal= pickle.load(f)
+
+    # match objects with masses
+    names= numpy.array(data['snlist'])
+
+    i = numpy.intersect1d(names, gal.keys(), assume_unique=True)
+
+    inda = numpy.zeros(len(i),dtype='int')    
+
+    mass=[]
+    emass = []
+    for j in xrange(len(i)):
+        inda[j] = numpy.where(names == i[j])[0]
+        emass.append(gal[i[j]]['eMass'])
+        mass.append(gal[i[j]]['Mass'])
+
+    mass = numpy.array(mass)
+    emass= numpy.array(emass)
+
 
 
 # orig()
-top()
+# top()
 # population()
+childress()
 wefew
 
     
