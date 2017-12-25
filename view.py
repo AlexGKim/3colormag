@@ -59,10 +59,13 @@ def orig():
     print(table)
 
 def top():
-    dm_sig = 0.08*(1+fit['dm_sig_unif'])
+    dm_sig = 0.08*(1+numpy.tan(fit['dm_sig_unif']))
+    # dm_sig =fit['dm_sig_unif']
     c = ChainConsumer()
+    # c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
+        # [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
     c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
-        [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
+        [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$",r'$\sigma_M$'],name='Master')
     fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
     fig.savefig("top.pdf",bbox_inches='tight')
     table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
@@ -81,13 +84,14 @@ def top():
     plt.legend()
     plt.xlabel(r'$dm$')
     plt.savefig("top_m.pdf",bbox_inches='tight')
+
     c= ChainConsumer()
     c.add_chain(numpy.median(fit['snparameters'],axis=0), \
         parameters= [r"$ {EW_{Ca}}$", r"${EW_{Si}}$", r"${\lambda_{Si}}$", r"${x_1}$", r"${A_{V,p}}$"], \
         name='Fit')
     table = c.analysis.get_latex_table(caption="Results for the tested models", label="tab:example")
     print(table)
-        
+
     # # input from previous fit
     # f = open('fix3_x1.pkl','rb')
     # (ofit,_) = pickle.load(f)
@@ -107,6 +111,7 @@ def top():
     # snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
 
     # c.add_chain(snparameters,name='Data')
+    
     fig = c.plotter.plot(figsize="column", truth=numpy.zeros(5))
     for ax in fig.axes:
         ax.xaxis.set_tick_params(labelsize=9)
@@ -114,10 +119,6 @@ def top():
         ax.yaxis.set_tick_params(labelsize=9)
         ax.yaxis.label.set_size(9)
     fig.savefig("top_snp.pdf",bbox_inches='tight')
-    plt.clf()
-
-    plt.plot(fit['alpha'][:,4])
-    fig.savefig("top_alpha.pdf",bbox_inches='tight')
     plt.clf()
 
 
@@ -138,9 +139,17 @@ def population():
         ax.yaxis.label.set_size(7)
     fig.savefig("population.pdf",bbox_inches='tight')
 
+    dm_sig = 0.08*(1+numpy.tan(fit['dm_sig_unif']))
+    c = ChainConsumer()
+    c.add_chain([fit['alpha'][:,-1],fit['L_snp_sig_unif'][:,-1], dm_sig], parameters= \
+        [r"$\alpha_{A_{V,p}}$",r"$\sigma_{{A_{V,p}}}$",r'$\sigma_M$'],name='Master')
+    fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(3))
+    fig.savefig("population_p.pdf",bbox_inches='tight')
+
+
 # orig()
 top()
-population()
+# population()
 wefew
 
     

@@ -7,8 +7,8 @@ import pystan
 import sivel
 
 # input from first try
-# f = open('c2.pkl.orig','rb')
-# (first,_) = pickle.load(f)
+f = open('c2_noalpha.pkl','rb')
+(first,_) = pickle.load(f)
 
 # input from previous fit
 f = open('fix3_x1.pkl','rb')
@@ -80,24 +80,37 @@ zerr = zerr[1:]
 data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
    'zerr':zerr, 'zerr0': zerr0, 'param_sd': param_sd}
 
+#null out the alpha for the p-component
+firstalpha = first['alpha'][:,:-1]
+
+firstL_snp_sig_unif= first['L_snp_sig_unif']
+firstL_snp_sig_unif[:,-1] = numpy.pi/8
 
 nchain =4
 init = [{
-   'alpha': numpy.zeros(N-1) , \
-   'pv_unit': pv_prior[1:] ,\
-   'pv0_unit': pv_prior[0] ,\
-   'dm_sig_unif' : 0., \
-   'dm_unit':   dm_prior[1:],\
-   'dm0_unit':  dm_prior[0] ,\
-   # # 'z_true': zcmb, \
-   # # 'z0_true': zcmb0, \
-   'snparameters_alpha' :snparameters_alpha_prior,\
-      #1./(N-1))*(snparameters - snparameters_mn[None,:])/(cauchy_tau*numpy.tan(0.2)), \
-   # 'L_snp_cor': numpy.identity(N-1), \
-   # first sigmas are cauchy_tau*0.25
-   'L_snp_sig_unif': numpy.zeros(N-1)+numpy.arctan(0.25) ,\
-   'snp_mn': snparameters_mn \
+   # 'alpha': numpy.zeros(N-1) , \
+   # 'pv_unit': pv_prior[1:] ,\
+   # 'pv0_unit': pv_prior[0] ,\
+   # 'dm_sig_unif' : 0., \
+   # 'dm_unit':   dm_prior[1:],\
+   # 'dm0_unit':  dm_prior[0] ,\
+   # # # 'z_true': zcmb, \
+   # # # 'z0_true': zcmb0, \
+   # 'snparameters_alpha' :snparameters_alpha_prior,\
+   'L_snp_cor': numpy.identity(N-1), \
+   # # first sigmas are cauchy_tau*0.25
+   # 'L_snp_sig_unif': numpy.zeros(N-1)+numpy.arctan(0.25) ,\
+   # 'snp_mn': snparameters_mn \
    # 'snparameters': snparameters\
+   'alpha': firstalpha.mean(axis=0)+numpy.random.normal(0,firstalpha.std(axis=0)), \
+   'pv_unit': first['pv_unit'].mean(axis=0)+numpy.random.normal(0,first['pv_unit'].std(axis=0)), \
+   'pv0_unit': first['pv0_unit'].mean(axis=0)+numpy.random.normal(0,first['pv0_unit'].std(axis=0)),\
+   'dm_sig_unif' : first['dm_sig_unif'].mean(axis=0)+numpy.random.normal(0,first['dm_sig_unif'].std(axis=0)), \
+   'dm_unit':   first['dm_unit'].mean(axis=0)+numpy.random.normal(0,first['dm_unit'].std(axis=0)),\
+   'dm0_unit':  first['dm0_unit'].mean(axis=0)+numpy.random.normal(0,first['dm0_unit'].std(axis=0)),\
+   'snparameters_alpha' :first['snparameters_alpha'].mean(axis=0)+numpy.random.normal(0,first['snparameters_alpha'].std(axis=0)),\
+   'L_snp_sig_unif': firstL_snp_sig_unif.mean(axis=0)+numpy.random.normal(0,firstL_snp_sig_unif.std(axis=0)),\
+   'snp_mn': first['snp_mn'].mean(axis=0)+numpy.random.normal(0,first['snp_mn'].std(axis=0)) \
    } \
 for _ in range(nchain)]
 
