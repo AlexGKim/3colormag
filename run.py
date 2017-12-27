@@ -18,8 +18,8 @@ f = open('fix3_x1.pkl','rb')
 # cauchy_tau = numpy.array([54., 14, 40, 2, 0.058])
 # alpha_scale = numpy.array([1.9e-3, 7.2e-3, 2.6e-3, 0.051, 1.7])  # 1/snparameters_sig*.05
 param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
-cauchy_tau = 4 * param_sd;              
-cauchy_tau[-1] = cauchy_tau[-1] / 75
+# cauchy_tau = 4 * param_sd;              
+# cauchy_tau[-1] = cauchy_tau[-1] / 75
 
 
 # input from data
@@ -86,7 +86,7 @@ firstalpha = first['alpha'][:,:-1]
 firstL_snp_sig_unif= first['L_snp_sig_unif']
 firstL_snp_sig_unif[:,-1] = numpy.pi/8
 
-nchain =4
+nchain =8
 init = [{
    # 'alpha': numpy.zeros(N-1) , \
    # 'pv_unit': pv_prior[1:] ,\
@@ -119,6 +119,9 @@ control = {'stepsize':1}
 fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
 
 output = open('c2.pkl','wb')
-pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
+ans = fit.extract()
+ans['mn_Delta']=ans['mn'][:,:D]
+del ans['mn']
+pickle.dump(ans, output, protocol=2)
 output.close()
 print fit

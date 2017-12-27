@@ -25,7 +25,8 @@ sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
 
 # input from color analysis
 pkl_file = open('fix3_x1.pkl', 'r')
-color = pickle.load(pkl_file)
+(color,_)  = pickle.load(pkl_file)
+print type(color)
 pkl_file.close()
 
 # input from results
@@ -63,7 +64,7 @@ def orig():
     print(table)
 
 def top():
-    dm_sig = 0.08*(1+numpy.tan(fit['dm_sig_unif']))
+    dm_sig = 0.1*(numpy.tan(fit['dm_sig_unif']))
     # dm_sig =fit['dm_sig_unif']
     c = ChainConsumer()
     # c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
@@ -82,6 +83,7 @@ def top():
     # plt.savefig("top_z.pdf",bbox_inches='tight')
     # plt.clf()
 
+    # plt.plot(fit['dm_sig_unif'])
 
     dm = dm_sig[:,None]*fit['dm_unit']
     plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
@@ -145,13 +147,20 @@ def population():
 
 def childress():
 
+    fiveoverlog10 = 5/numpy.log(10)
+
+    dm = numpy.mean(color['Delta']-color['Delta'][:,0][:,None],axis=0)
+    dm = dm[1:]
+    mn = numpy.mean(fit['mn_Delta'],axis=0)
+
+    res = dm-mn
 
     # get Childress Masses
     f = open('MJC_compile_SNdata.pkl','r')
     gal= pickle.load(f)
 
     # match objects with masses
-    names= numpy.array(data['snlist'])
+    names= numpy.array(data['snlist'])[1:]
 
     i = numpy.intersect1d(names, gal.keys(), assume_unique=True)
 
@@ -167,18 +176,13 @@ def childress():
     mass = numpy.array(mass)
     emass= numpy.array(emass)
 
-
+    plt.scatter(mass, res[inda])
+    plt.show()
 
 # orig()
-# top()
-# population()
-childress()
-wefew
-
-    
-
-
-
+top()
+population()
+# childress()
 
 # c= ChainConsumer()
 # c.add_chain(numpy.concatenate((fit['snp_sig_unif'],fit['L_snp_sig_unif']),axis=1), parameters= \

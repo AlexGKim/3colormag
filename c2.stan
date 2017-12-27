@@ -27,8 +27,8 @@ transformed data{
   alpha_scale = 0.05 * inv(param_sd);
   cauchy_tau = 4 * param_sd;              
 
-  dm_mu =0.08;
-  dm_tau=0.08;
+  dm_mu =0.0;
+  dm_tau=0.1;
 }
 
 parameters {
@@ -37,7 +37,7 @@ parameters {
   vector[D] pv_unit;                              // peculiar velocity pv_sig fixed 
   real pv0_unit;
 
-  real<lower=-pi()/4, upper=pi()/2> dm_sig_unif;  // peculiar magnitude
+  real<lower=0, upper=pi()/2> dm_sig_unif;  // peculiar magnitude
   vector[D] dm_unit;
   real dm0_unit; 
 
@@ -54,6 +54,7 @@ parameters {
 
 transformed parameters{
   vector[N-1] snparameters[D];      // SN parameters covariance term
+  vector[D*N] mn;                               // model vector corresponding to data
 
   {
     matrix[N-1, N-1] L_snp_cov;                   // covariance matrix of SN parameters
@@ -64,50 +65,50 @@ transformed parameters{
       // snparameters[d] =  snp_mn + cauchy_tau .* tan(L_snp_sig_unif) .* snparameters_alpha[d];
     }
   }
+
+  {
+    vector[D] pv;                                 // peculiar velocity
+    real pv0;
+    vector[D] pz;                                 // peculiar redshift
+    real pz0;
+
+    vector[N-1] alpha_rescale;
+    real dm_sig;
+    real pz0term;
+    real dm0term;
+
+
+    // peculiar redshift  Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
+    pv = pv_sig * pv_unit;
+    pv0 = pv_sig * pv0_unit;
+    pz = sqrt((pv+1) ./ (1-pv))-1;
+    pz0 = sqrt((pv0+1) / (1-pv0))-1;
+    pz0term = fiveoverlog10 * pz0/zcmb0;
+
+    for (n in 1:N-2){
+       alpha_rescale[n] = alpha[n] * alpha_scale[n];
+    }
+    alpha_rescale[N-1]=0;
+
+    dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
+    dm0term = dm_sig*dm0_unit;
+
+    // data prediction
+    for (d in 1:D){           //for each supernova pair
+    // prediction for Delta
+      mn[d] =  fiveoverlog10 * pz[d]/zcmb[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha_rescale, snparameters[d]);
+    // prediction for features
+      for (n in 1:N-1){
+        mn[d+n*D]= snparameters[d,n];
+      }
+    }
+  }
 }
 
 model {
-
-  vector[D*N] mn;                               // model vector corresponding to data
-  vector[D] pv;                                 // peculiar velocity
-  real pv0;
-  vector[D] pz;                                 // peculiar redshift
-  real pz0;
-
-  vector[N-1] alpha_rescale;
-  real dm_sig;
-  real pz0term;
-  real dm0term;
-
-
-  // peculiar redshift  Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
-  pv = pv_sig * pv_unit;
-  pv0 = pv_sig * pv0_unit;
-  pz = sqrt((pv+1) ./ (1-pv))-1;
-  pz0 = sqrt((pv0+1) / (1-pv0))-1;
-  pz0term = fiveoverlog10 * pz0/zcmb0;
-
-  for (n in 1:N-2){
-     alpha_rescale[n] = alpha[n] * alpha_scale[n];
-  }
-  alpha_rescale[N-1]=0;
-
-  dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
-  dm0term = dm_sig*dm0_unit;
-
-  // data prediction
-  for (d in 1:D){           //for each supernova pair
-  // prediction for Delta
-    mn[d] =  fiveoverlog10 * pz[d]/zcmb[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha_rescale, snparameters[d]);
-  // prediction for features
-    for (n in 1:N-1){
-      mn[d+n*D]= snparameters[d,n];
-    }
-  }
-
   pv_unit ~ normal(0, 1);                         // peculiar velocity
   pv0_unit ~ normal(0, 1);
-  dm_sig_unif ~ uniform(-pi()/4, pi()/2);         // peculiar magnitude
+  dm_sig_unif ~ uniform(0, pi()/2);         // peculiar magnitude
   dm_unit ~ normal(0, 1); 
   dm0_unit ~ normal(0, 1);
 

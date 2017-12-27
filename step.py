@@ -18,7 +18,7 @@ pkl_file.close()
 
 # input from results
 f = open('c2.pkl','rb')
-(fit,_) = pickle.load(f)
+fit = pickle.load(f)
 
 # get Childress Masses
 f = open('MJC_compile_SNdata.pkl','r')
@@ -55,8 +55,6 @@ mn_cov = numpy.cov(mn,rowvar=False)
 res = dm_meas-mn_meas
 res_cov = dm_cov + mn_cov
 
-print numpy.prod(numpy.diag(res_cov)), numpy.linalg.det(res_cov)/numpy.prod(numpy.diag(res_cov))
-wefewf
 # plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
 # plt.show()
 data = {'D' : len(res),\

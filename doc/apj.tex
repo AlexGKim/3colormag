@@ -201,6 +201,14 @@
 %
 %\keywords{supernovae: general; supernovae}
 
+\section{Introduction}
+The objective of this work is to determine the relative absolute magnitudes of SNe~Ia.  This is done in two steps.
+The first step is to model peak-magnitude colors as a function of parameters.  The second step is to model the relative achromatic magnitudes
+as a function of the same parameters.
+The two models in combination give the  relative absolute magnitudes of SNe~Ia.
+The color analysis is expounded upon in the earlier draft article.  This note focuses on the relative achromatic magnitudes.
+
+\section{Color Analysis Summary}
 The color analysis gives per-supernova parameters
 $\vec{\Delta}$,  $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$,   $\vec{x}_1$,  $\sigma_p\phi_{\hat{V}}  \vec{p}$,
 where each vector has $N$ elements, one for each of the supernovae in the sample.  The parameters $g_0$ and $g_1$ are attributed to dust
@@ -215,6 +223,7 @@ The data vector for the current analysis is the concatenation of these vectors
 which has length $6(N-1)$.  The data covariance $C$ is given by the color analysis.\footnote{In
 the color analysis the per-SN parameters
 are not independent.  The parameters relative to an arbitrary reference supernova are independent.}
+The standard deviations of $\vec{y}$ excepting the first is denoted $\vec{\sigma}_{y_{.0}})$.
 
 The model has the following fundamental parameters that describe the underlying distribution of SN feature parameters.
 This top level of the hierarchical model is necessary to avoid Eddington bias and simultaneously constrain the multiple linear
@@ -224,14 +233,15 @@ The population distribution parameters are
 \begin{tabular}{rccc}
 \hline
 Parameter & pdf & Description & \# parameters\\ \hline
-$\vec{\theta}_{\mathit{mn}}$ & flat  & distribution mean & 5\\
-$\vec{\theta}_{\sigma}$ &  $\text{Cauchy}(\vec{0},[100,25,70,4,0.1])$; $>0$& distribution s.d. & 5\\
-$\vec{\sigma}_{\theta}$ & $\text{Cauchy}(\vec{0},[100,25,70,4,0.1])$; $>0$  & covariance s.d. & 5\\
-$C_{\theta}$ & $\text{LKJ}(2)$ & feature correlation & 10\\
+$\vec{\theta}_{\mathit{mn}}$ & flat  &  mean & 5\\
+$\vec{\sigma}_{\theta}$ & $\text{Cauchy}(\vec{0},4\vec{\sigma}_{y_{.0}})$; $>0$  &  s.d. & 5\\
+$C_{\theta}$ & $\text{LKJ}(4)$ &  correlation & 10\\
 \hline
 \end{tabular}
 \end{center}
-This amounts to $25$ parameters.  The Cauchy priors are individualized based on the observed standard deviation of each feature.
+This amounts to $20$ parameters.
+
+\section{Achromatic Magnitude Analysis}
 
 The model has the following fundamental parameters:
 \begin{center}
