@@ -55,30 +55,47 @@ mn_cov = numpy.cov(mn,rowvar=False)
 res = dm_meas-mn_meas
 res_cov = dm_cov + mn_cov
 
-# plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
-# plt.show()
-data = {'D' : len(res),\
-    'res': res,\
-    'rescov': res_cov,\
-    'mass': mass,\
-    'emass': emass}
+def view():
+    pkl_file = open('step.pkl', 'r')
+    (data,_) = pickle.load(pkl_file)
+    pkl_file.close()
 
-nchain =4
-init = [{
-    'mass_0' : mass,\
-    'steplow': 0,\
-    'stephigh': 0,\
-    'mass_mn': 10,\
-    'mass_inif': 1 \
-   } \
-for _ in range(nchain)]
+    low = numpy.mean(data['steplow'])
+    low_sd = numpy.std(data['steplow'])
 
-sm = pystan.StanModel(file='step.stan')
-control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+    high = numpy.mean(data['steplow']+data['stepdelta'])
+    high_sd = numpy.std(data['steplow']+data['stepdelta'])
 
-output = open('step.pkl','wb')
-pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
-output.close()
-print fit
+    mn =numpy.mean(data['stepdelta'])
+    std= numpy.std(data['stepdelta'])
+    print r"${:7.3f} \pm {:7.3f}$".format(mn,std)
+    plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
+    plt.show()
 
+def fit():
+    data = {'D' : len(res),\
+        'res': res,\
+        'rescov': res_cov,\
+        'mass': mass,\
+        'emass': emass}
+
+    nchain =8
+    init = [{
+        'mass_0' : mass,\
+        'steplow': 0,\
+        'stephigh': 0,\
+        'mass_mn': 10,\
+        'mass_inif': 1 \
+       } \
+    for _ in range(nchain)]
+
+    sm = pystan.StanModel(file='step.stan')
+    control = {'stepsize':1}
+    fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+
+    output = open('step.pkl','wb')
+    pickle.dump((fit.extract(),fit.get_sampler_params()), output, protocol=2)
+    output.close()
+    print fit
+
+view()

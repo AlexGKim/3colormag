@@ -7,8 +7,6 @@
 \usepackage{natbib}
 \usepackage{lineno}
 \usepackage{color}
-\defcitealias{1999PASP..111...63F}{F99}
-\defcitealias{2017ApJ...842...93M}{M17}
 \linenumbers
 
 \begin{document}
@@ -209,8 +207,9 @@ The two models in combination give the  relative absolute magnitudes of SNe~Ia.
 The color analysis is expounded upon in the earlier draft article.  This note focuses on the relative achromatic magnitudes.
 
 \section{Color Analysis Summary}
+\label{color:sec}
 The color analysis gives per-supernova parameters
-$\vec{\Delta}$,  $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$,   $\vec{x}_1$,  $\sigma_p\phi_{\hat{V}}  \vec{p}$,
+$\vec{\Delta}$,  $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$,   $\vec{x}_1$,  $\vec{A}_{V,p}$,
 where each vector has $N$ elements, one for each of the supernovae in the sample.  The parameters $g_0$ and $g_1$ are attributed to dust
 and are not included as per-supernova parameters.  The CMB redshifts of the supernovae are $\vec{z}$.  Define a new set of vectors such that
 $\vec{\Delta}_{.0} = (\vec{\Delta} - \Delta[0])[1:]$ with length $N-1$; here each per-supernova parameter is measured relative to the
@@ -218,56 +217,82 @@ reference supernova arbitrarily selected to be the one with index 0.
 
 The data vector for the current analysis is the concatenation of these vectors
 \[
-\vec{y} = \left\{\vec{\Delta}_{.0} , \overrightarrow{EW}_{Ca\,.0} ,  \overrightarrow{EW}_{Si\,.0},  \vec{\lambda}_{Si\,.0},   \vec{x}_{1\,.0},  \sigma_p\phi_{\hat{V}}  \vec{p}_{.0} \right\},
+\vec{y} = \left\{\vec{\Delta}_{.0} , \overrightarrow{EW}_{Ca\,.0} ,  \overrightarrow{EW}_{Si\,.0},  \vec{\lambda}_{Si\,.0},   \vec{x}_{1\,.0}, \vec{A}_{V,p\,.0}\right\},
 \]
 which has length $6(N-1)$.  The data covariance $C$ is given by the color analysis.\footnote{In
 the color analysis the per-SN parameters
 are not independent.  The parameters relative to an arbitrary reference supernova are independent.}
-The standard deviations of $\vec{y}$ excepting the first is denoted $\vec{\sigma}_{y_{.0}})$.
+The standard deviations of $\vec{y}$ excepting the first element is denoted as $\vec{\sigma}_{y_{.0}}=\{27,  6.9,  20,   0.98,   0.029\}$.
 
-The model has the following fundamental parameters that describe the underlying distribution of SN feature parameters.
-This top level of the hierarchical model is necessary to avoid Eddington bias and simultaneously constrain the multiple linear
-coefficients in our model for intrinsic grey-magnitude residuals.
-The population distribution parameters are
-\begin{center}
-\begin{tabular}{rccc}
-\hline
-Parameter & pdf & Description & \# parameters\\ \hline
-$\vec{\theta}_{\mathit{mn}}$ & flat  &  mean & 5\\
-$\vec{\sigma}_{\theta}$ & $\text{Cauchy}(\vec{0},4\vec{\sigma}_{y_{.0}})$; $>0$  &  s.d. & 5\\
-$C_{\theta}$ & $\text{LKJ}(4)$ &  correlation & 10\\
-\hline
-\end{tabular}
-\end{center}
-This amounts to $20$ parameters.
+The  standard deviation of $\vec{A}_{V,p\,.0}$, 0.029,  is comparable to the per element uncertainties from the diagonal of $C$.
+All the other features have per-object measurement uncertainties significantly smaller than the population standard deviation.
+
+\begin{figure}[htbp] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=2.95in]{../sigma_p.pdf}
+   \caption{
+Histogram of the uncertainties $\vec{A}_{V,p\,.0}$.  The vertical line is the standard deviation of $\vec{A}_{V,p\,.0}$.
+The posterior of the $\vec{A}_{V,p\,.0}$-component of the model parameter $C_{\text{feature}}$ is plotted.
+   \label{sigma_p:fig}}
+\end{figure}
+
 
 \section{Achromatic Magnitude Analysis}
 
-The model has the following fundamental parameters:
+\subsection{Model}
+The model describes the distribution of the SN-feature parameters.  The distribution is modeled as a
+5-dimensional Normal distribution
+parameterized by 
 \begin{center}
 \begin{tabular}{rccc}
 \hline
 Parameter & pdf & Description & \# parameters\\ \hline
-$\sigma_M$ & $\text{Cauchy}(0.08, 0.08)$; $>0$ & intrinsic dispersion & 1\\
+$\langle \overrightarrow{\text{feature}}\rangle$ & flat  &  mean & 5\\
+$\vec{\sigma}_{\text{feature}}$ & $\text{Cauchy}(\vec{0},4\vec{\sigma}_{y_{.0}})$; $>0$  &  s.d. & 5\\
+$C_{\text{feature}}$ & $\text{LKJ}(4)$ &  correlation & 10\\
+\hline
+\end{tabular}
+\end{center}
+where the covariance matrix $(\vec{\theta}_{\sigma}I) C_{\text{feature}}  (\vec{\theta}_{\sigma}I)$ is
+decomposed into its standard deviations, $\vec{\sigma}_{\theta}$,
+and its correlation matrix $C_{\text{feature}}$.
+This amounts to $20$ parameters.
+
+The model parameterizes the intrinsic parameters of the $N$ supernovae as
+\begin{center}
+\begin{tabular}{rccc}
+\hline
+Parameter & pdf & Description & \# parameters\\ \hline
 $\vec{\theta}_{EW_{Ca}}$ & Eq.~\ref{feature:pdf} & ${EW}_{Ca}$ features & $N-1$ \\
 $\vec{\theta}_{EW_{Si}}$ & Eq.~\ref{feature:pdf}& ${EW}_{Si}$ features & $N-1$ \\
 $\vec{\theta}_{\lambda_{Si}}$ &Eq.~\ref{feature:pdf}& ${\lambda}_{Si}$ features & $N-1$ \\
 $\vec{\theta}_{x_1}$ & Eq.~\ref{feature:pdf}& ${x}_{1}$ features & $N-1$ \\
 $\vec{\theta}_{p}$ & Eq.~\ref{feature:pdf}& $\sigma_p\phi_{\hat{V}}  {p} $ features & $N-1$ \\
-$\vec{\alpha}$ & Flat& feature cofactors & 5 \\
 \hline
 \end{tabular}
 \end{center}
 The feature pdf's are independent for each supernova, such that SN indexed by $i$ is associated with the parameters
 $\vec{\theta}^{(i)}=\left\{\theta_{EW_{Ca}}[i], \theta_{EW_{Si}}[i], \theta_{\lambda_{Si}}[i], \theta_{x_1}[i], \theta_{p}[i] \right\}$
 that are drawn as
-\begin{align}
-\vec{\theta}^{(i)}_0 & \sim \mathcal{N}(\vec{\theta}_{\mathit{mn}}, \vec{\theta}_{\sigma})  \nonumber \\
-\vec{\theta}^{(i)} & \sim \mathcal{N}(\vec{\theta}^{(i)}_0, C_{\theta}) .
+\begin{equation}
+\vec{\theta}^{(i)} \sim \mathcal{N}(\vec{\theta}_{\mathit{mn}}, (\vec{\theta}_{\sigma}I) C_{\text{feature}}  (\vec{\theta}_{\sigma}I).
 \label{feature:pdf}
-\end{align}
-Visual inspection of the input feature distributions finds that they are not grossly multimodal.
-These are $5N+1$ of these parameters.
+\end{equation}
+These are $5(N-1)$ of these parameters.
+
+The achromatic magnitude is related linearly to the intrinsic features with residual dispersion labeled by the parameters 
+\begin{center}
+\begin{tabular}{rccc}
+\hline
+Parameter & pdf & Description & \# parameters\\ \hline
+$\vec{\alpha}$ & Flat& feature cofactors & 4 \\
+$\sigma_M$ & $\text{Cauchy}(0, 0.1)$; $>0$ & intrinsic dispersion & 1\\
+\hline
+\end{tabular}
+\end{center}
+With five features there should be five linear coefficients $\vec{\alpha}$.  The quality of the input data is insufficient to
+simultaneously constrain $\sigma_p\phi_{\hat{V}}  {p}$ and their associated $\alpha$, so it is not included in this model.
+These are 5 of these magnitude-correction parameters.
 
 For expository and computational convenience the following parameters are introduced:  
 \begin{center}
@@ -287,7 +312,7 @@ The following derived parameters are defined from the above parameters:
 \hline
 Parameter & Definition & Description\\ \hline
 $\overrightarrow{\delta z}$ & $\sqrt{(1+\vec{v})/ (1-\vec{v})}-1$ & peculiar redshift\\
-$ \mu[i]; 0 \le i < N-1$ & $\sum_{k=0}^{4} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right)$ & residual from reference\\
+$ \mu[i]; 0 \le i < N-1$ & $\sum_{k=0}^{3} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right)$ & residual from reference\\
 $ \mu[N:6(N-1)]$ & $\left\{\vec{\theta}_{EW_{Ca}},\vec{\theta}_{EW_{Si}}, \vec{\theta}_{\lambda_{Si}}, \vec{\theta}_{x_1},\vec{\theta}_{p} \right\}$ &  features \\
 \hline
 \end{tabular}
@@ -299,6 +324,54 @@ The model likelihood is described by
 \begin{equation*}
 \vec{y} \sim \mathcal{N}\left(\vec{\mu}, C\right).
 \end{equation*}
+
+The model does not consider redshift measurement uncertainty.  Some of the SNf supernovae have redshift uncertainties of 0.01.  Interpreting
+this uncertainty as Gaussian produces singular magnitude corrections from peculiar velocities.
+
+\subsection{Results}
+Posterior contours for pairs of
+$\vec{\theta}_{\mathit{mn}}$ and
+$\vec{\sigma}_{\theta}$ are shown in Fig.~\ref{confidence:fig}. 
+
+\begin{figure}[htbp] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=2.95in]{../population.pdf}
+   \includegraphics[width=2.95in]{../top.pdf}
+   \caption{
+Posterior contours for pairs of
+$\vec{\theta}_{\mathit{mn}}$ and
+$\vec{\sigma}_{\theta}$ (left), and pairs of $\vec{\alpha}$ and
+$\sigma_M$ (right).  N.B. The package used to make the plot renormalizes ranges in a way that doesn't appear in the plot, need
+to figure  this out.
+   \label{confidence:fig}}
+\end{figure}
+
+Of particular interest is the posterior of  $\sigma_{{A_{V,p\,.0}}}$.  As noted in
+\S\ref{color:sec}, the measurement uncertainty is comparable to the population standard deviation.  This is manifest in
+the fit for the underlying distribution, which 
+yields a posterior that supports no intrinsic dispersion, as
+shown in Fig.~\ref{sigma_p:fig}.  If the underlying distribution and a linear coefficient relating ${A_{V,p\,.0}}$
+and achromatic magnitude were simultaneously fit, the intrinsic  $\vec{\theta}_{A_{V,p\,.0}}$, unconstrained by the 
+low signal-to-noise measurements, would be
+free to take on values that eliminate intrinsic dispersion.  As the data does not provide a constraint on its underlying distribution,
+we do not attempt to fit an $\alpha$ term that corresponds to  ${A_{V,p\,.0}}$.
+
+
+Posterior contours for pairs  of $\vec{\alpha}$ and
+$\sigma_M$ are shown in Fig.~\ref{confidence:fig}.
+
+\begin{table}
+    \centering
+    \caption{Results for the tested models}
+    \label{tab:example}
+    \begin{tabular}{cccccc}
+        \hline
+		Model & $\alpha_{EW_{Ca}}$ & $\alpha_{EW_{Si}}$ & $\alpha_{\lambda_{Si}}$ & $\alpha_{x_1}$ & $\sigma_M$ \\ 
+		\hline
+		Master & $-0.64^{+0.33}_{-0.27}$ & $1.25^{+0.65}_{-0.91}$ & $-0.82^{+0.29}_{-0.27}$ & $1.97^{+0.63}_{-1.01}$ & $\left( 93.7^{+8.0}_{-7.9} \right) \times 10^{-3}$ \\ 
+		\hline
+    \end{tabular}
+\end{table}
 %\bibliographystyle{apj}
 %\bibliography{/Users/akim/Documents/alex}
 

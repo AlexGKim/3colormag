@@ -16,6 +16,7 @@ import sivel
 from chainconsumer import ChainConsumer
 
 param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
+cauchy_tau = 4 * param_sd     
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
@@ -26,12 +27,11 @@ sivel,sivel_err,x1,x1_err,zcmb,zerr,_ = sivel.sivel(data)
 # input from color analysis
 pkl_file = open('fix3_x1.pkl', 'r')
 (color,_)  = pickle.load(pkl_file)
-print type(color)
 pkl_file.close()
 
 # input from results
 f = open('c2.pkl','rb')
-(fit,_) = pickle.load(f)
+fit = pickle.load(f)
 
 def orig():
     f = open('c2.orig.pkl','rb')
@@ -47,7 +47,7 @@ def orig():
     plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
     plt.legend()
     plt.xlabel(r'$dm$')
-    plt.savefig("top_m.pdf",bbox_inches='tight')
+    plt.savefig("top_m.orig.pdf",bbox_inches='tight')
 
     c= ChainConsumer()
     c.add_chain(numpy.median(fit['snparameters'],axis=0), \
@@ -83,7 +83,8 @@ def top():
     # plt.savefig("top_z.pdf",bbox_inches='tight')
     # plt.clf()
 
-    # plt.plot(fit['dm_sig_unif'])
+    # plt.plot(dm_sig,'.')
+    # plt.savefig("dm_sig.pdf")
 
     dm = dm_sig[:,None]*fit['dm_unit']
     plt.hist([dm.flatten(),numpy.median(dm,axis=0)],bins=50,normed=True,label=['stack','median'])
@@ -129,8 +130,21 @@ def top():
 
 
 def population():
+    D = color['Delta'].shape[1]
+    p_par=[]
+    for index in xrange(1,D):
+        p_par.append(color['ev_sig']*color['ev'][:,2]* (color['mag_int_raw'][:,index]-color['mag_int_raw'][:,0]))
+    p_par = numpy.array(p_par)
+    p_par_sig  = numpy.std(p_par,axis=0)
+    bins = 1e-5 * 10.**numpy.arange(1,3.8,0.05)
+    plt.hist([cauchy_tau[-1]*numpy.tan(fit['L_snp_sig_unif'][:,-1]), p_par_sig],bins=bins, \
+        label=[r"$\sigma_{{A_{V,p\,.0}}}$ posterior", r"Input $A_{V,p\,.0}$ Uncertainty"],normed=True)
+    plt.legend()
+    plt.savefig("sigma_p.pdf",bbox_inches='tight')
+
+    wfwe
     c= ChainConsumer()
-    c.add_chain(numpy.concatenate((fit['snp_mn'],fit['L_snp_sig_unif']),axis=1), parameters= \
+    c.add_chain(numpy.concatenate((fit['snp_mn'],cauchy_tau*numpy.tan(fit['L_snp_sig_unif'])),axis=1), parameters= \
         [r"$\langle {EW_{Ca}}\rangle$", r"$\langle{EW_{Si}}\rangle$", \
         r"$\langle{\lambda_{Si}}\rangle$", r"$\langle{x_1}\rangle$", r"$\langle{A_{V,p}}\rangle$", \
         r"$\sigma_{{EW_{Ca}}}$", r"$\sigma_{{EW_{Si}}}$", r"$\sigma_{{\lambda_{Si}}}$", r"$\sigma_{{x_1}}$", r"$\sigma_{{A_{V,p}}}$"], \
@@ -144,6 +158,8 @@ def population():
         ax.yaxis.set_tick_params(labelsize=7)
         ax.yaxis.label.set_size(7)
     fig.savefig("population.pdf",bbox_inches='tight')
+
+
 
 def childress():
 
@@ -180,7 +196,7 @@ def childress():
     plt.show()
 
 # orig()
-top()
+# top()
 population()
 # childress()
 
