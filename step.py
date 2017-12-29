@@ -60,16 +60,21 @@ def view():
     (data,_) = pickle.load(pkl_file)
     pkl_file.close()
 
-    low = numpy.mean(data['steplow'])
-    low_sd = numpy.std(data['steplow'])
-
-    high = numpy.mean(data['steplow']+data['stepdelta'])
-    high_sd = numpy.std(data['steplow']+data['stepdelta'])
+    (low,lowm,lowp)= numpy.percentile(data['steplow'],(50,50-34,50+34))
+    (high,highm, highp) = numpy.percentile(data['steplow']+data['stepdelta'],(50,50-34,50+34))
 
     mn =numpy.mean(data['stepdelta'])
     std= numpy.std(data['stepdelta'])
     print r"${:7.3f} \pm {:7.3f}$".format(mn,std)
-    plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
+    # (mn,mnm,mnp) = numpy.percentile(data['stepdelta'],(50,50-34,50+34))
+    # print mn, mn-mnm, mnp-mn
+    ax = plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
+    plt.hlines(low, 7,10)
+    plt.hlines(lowm, 7,10,color='red')
+    plt.hlines(lowp, 7,10,color='red')
+    plt.hlines(high, 10,13)
+    plt.hlines(highm, 10,13,color='red')
+    plt.hlines(highp, 10,13,color='red')
     plt.show()
 
 def fit():

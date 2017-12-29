@@ -139,6 +139,7 @@ def population():
     bins = 1e-5 * 10.**numpy.arange(1,3.8,0.05)
     plt.hist([cauchy_tau[-1]*numpy.tan(fit['L_snp_sig_unif'][:,-1]), p_par_sig],bins=bins, \
         label=[r"$\sigma_{{A_{V,p\,.0}}}$ posterior", r"Input $A_{V,p\,.0}$ Uncertainty"],normed=True)
+    plt.axvline(param_sd[-1])
     plt.legend()
     plt.savefig("sigma_p.pdf",bbox_inches='tight')
 
