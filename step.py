@@ -66,8 +66,8 @@ def view():
     mn =numpy.mean(data['stepdelta'])
     std= numpy.std(data['stepdelta'])
     print r"${:7.3f} \pm {:7.3f}$".format(mn,std)
-    # (mn,mnm,mnp) = numpy.percentile(data['stepdelta'],(50,50-34,50+34))
-    # print mn, mn-mnm, mnp-mn
+    (mn,mnm,mnp) = numpy.percentile(data['stepdelta'],(50,50-34,50+34))
+    print mn, mn-mnm, mnp-mn
     ax = plt.errorbar(mass, res, marker='o',linestyle="None",yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
     plt.hlines(low, 7,10)
     plt.hlines(lowm, 7,10,color='red')
@@ -75,7 +75,17 @@ def view():
     plt.hlines(high, 10,13)
     plt.hlines(highm, 10,13,color='red')
     plt.hlines(highp, 10,13,color='red')
-    plt.show()
+    plt.errorbar(12.5,high,yerr=[[mn-mnm, mnp-mn]],ecolor='black',elinewidth=3)
+    plt.ylabel(r'Relative magnitude offset $\vec{\Delta}_{.0} - \mu[0:N]$ (mag)')
+    plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
+    plt.savefig("mass.pdf",bbox_inches='tight')
+
+    from chainconsumer import ChainConsumer
+    c = ChainConsumer()
+    c.add_chain([data['steplow'],data['stepdelta'],data['mass_mn'],2*numpy.tan(data['mass_unif'])], parameters= \
+        [r"$m_{low}$", r"$\Delta_{\mathrm{high}}$", r"$\langle M_{\mathrm{host}} \rangle$", r"$\sigma_{M_{\mathrm{host}}}$"],name='Master')
+    fig =  c.plotter.plot(figsize="page")
+    fig.savefig("mass_fit.pdf",bbox_inches='tight')
 
 def fit():
     data = {'D' : len(res),\
@@ -90,7 +100,7 @@ def fit():
         'steplow': 0,\
         'stephigh': 0,\
         'mass_mn': 10,\
-        'mass_inif': 1 \
+        'mass_unif': 1 \
        } \
     for _ in range(nchain)]
 
@@ -104,3 +114,4 @@ def fit():
     print fit
 
 view()
+# fit()
