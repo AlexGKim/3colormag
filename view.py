@@ -30,7 +30,7 @@ pkl_file = open('fix3_x1.pkl', 'r')
 pkl_file.close()
 
 # input from results
-f = open('c2.pkl','rb')
+f = open('c2mag.pkl','rb')
 fit = pickle.load(f)
 
 def orig():
@@ -197,8 +197,8 @@ def childress():
     plt.show()
 
 # orig()
-# top()
-population()
+top()
+#population()
 # childress()
 
 # c= ChainConsumer()
