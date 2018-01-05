@@ -71,7 +71,9 @@ parameters {
 
 transformed parameters{
   vector[N-1] snparameters[D];      // SN parameters covariance term
+  real zeroterm;                    // pv and dm of the zeroth supernova
 
+  // SN parameter calculation
   {
     matrix[N-1, N-1] L_snp_cov;                   // covariance matrix of SN parameters
     // feature covariance
@@ -81,6 +83,21 @@ transformed parameters{
       // snparameters[d] =  snp_mn + cauchy_tau .* tan(L_snp_sig_unif) .* snparameters_alpha[d];
     }
   }
+
+  // zeroth supernova calculation
+  {
+    real pv0;
+    real pz0;
+    real pz0term;
+    real dm0term;
+
+    // peculiar redshift  Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
+    pv0 = pv_sig * pv0_unit;
+    pz0 = sqrt((pv0+1) / (1-pv0))-1;
+    pz0term = fiveoverlog10 * pz0/zcmb0;
+    dm0term =  (dm_mu+dm_tau*tan(dm_sig_unif))*dm0_unit;
+    zeroterm = pz0term + dm0term;
+  }
 }
 
 model {
@@ -88,34 +105,38 @@ model {
 
   {
     vector[D] pv;                                 // peculiar velocity
-    real pv0;
+    // real pv0;
     vector[D] pz;                                 // peculiar redshift
-    real pz0;
+    // real pz0;
+    real dm_sig;
+    // real pz0term;
+    // real dm0term;
 
     vector[N-1] alpha_rescale;
-    real dm_sig;
-    real pz0term;
-    real dm0term;
 
     real stepnorm;
     vector[D] stepcorr;
     real stepcorr0;
+    vector[D_gal] tanh_mass_0 ;
+    real tanh_mass0_0;
+
 
     // peculiar redshift  Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
     pv = pv_sig * pv_unit;
-    pv0 = pv_sig * pv0_unit;
+    // pv0 = pv_sig * pv0_unit;
     pz = sqrt((pv+1) ./ (1-pv))-1;
-    pz0 = sqrt((pv0+1) / (1-pv0))-1;
-    pz0term = fiveoverlog10 * pz0/zcmb0;
+    // pz0 = sqrt((pv0+1) / (1-pv0))-1;
+    // pz0term = fiveoverlog10 * pz0/zcmb0;
+    dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
+    // dm0term = dm_sig*dm0_unit;
 
+    // the new alpha with scaling and adding a 0 for the last element
     for (n in 1:N-2){
        alpha_rescale[n] = alpha[n] * alpha_scale[n];
     }
     alpha_rescale[N-1]=0;
 
-    dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
-    dm0term = dm_sig*dm0_unit;
-
+    //the mass-step calculation
     tanh_mass0_0 = tanh(10*(mass0_0-10));
     tanh_mass_0 = tanh(10*(mass_0-10));
 
@@ -130,7 +151,7 @@ model {
     for (d in 1:D){           //for each supernova pair
 
     // prediction for Delta
-      mn[d] =  stepcorr[d] + fiveoverlog10 * pz[d]/zcmb[d] - pz0term + dm_sig*dm_unit[d] - dm0term + dot_product(alpha_rescale, snparameters[d]);
+      mn[d] =  stepcorr[d] + fiveoverlog10 * pz[d]/zcmb[d] + dm_sig*dm_unit[d] - zeroterm + dot_product(alpha_rescale, snparameters[d]);
 
    // prediction for features
       for (n in 1:N-1){
@@ -162,7 +183,5 @@ model {
 
   mass ~ normal(mass_0, emass);
   mass0 ~ normal(mass0_0, emass0);
-  // mass ~ normal(atanh(tanh_mass_0)/10+10, emass);
-  // mass0 ~ normal(atanh(tanh_mass0_0)/10+10., emass0);
 
 }

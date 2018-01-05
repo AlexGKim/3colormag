@@ -137,9 +137,10 @@ def view():
    ax = plt.errorbar(mass, res, marker='o',linestyle="None",xerr=[emass,emass],yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
    x=numpy.arange(6.8,13,0.05)
    (step,stepm,stepp)= numpy.percentile(data['stephigh'],(50,50-34,50+34),axis=0)/2
-   plt.plot(x,step*numpy.tanh(10*(x-10)),color='black')
-   plt.plot(x,stepm*numpy.tanh(10*(x-10)),linestyle=':',color='r')
-   plt.plot(x,stepp*numpy.tanh(10*(x-10)),linestyle=':',color='g')
+   zterm = numpy.mean(data['zeroterm'])
+   plt.plot(x,step*numpy.tanh(10*(x-10))-zterm,color='black')
+   plt.plot(x,stepm*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='r')
+   plt.plot(x,stepp*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='g')
    plt.ylabel(r'Relative magnitude offset $\vec{\Delta}_{.0} - \mu[0:N]$ (mag)')
    plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
    plt.xlim((6.8,13))
@@ -222,7 +223,7 @@ def run():
 
    sm = pystan.StanModel(file='c2mag.stan')
    control = {'stepsize':1}
-   fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+   fit = sm.sampling(data=data, iter=500, chains=nchain,control=control,init=init, thin=1)
 
    output = open('c2mag.pkl','wb')
    pickle.dump(fit.extract(), output, protocol=2)
