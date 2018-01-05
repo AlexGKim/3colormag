@@ -65,8 +65,8 @@ parameters {
   real steplow;
   real stephigh;
 
-  // real mass_mn;
-  // real<lower = 0, upper = pi()/2> mass_unif;
+  real mass_mn;
+  real<lower = 0, upper = pi()/2> mass_unif;
 }
 
 transformed parameters{
@@ -105,12 +105,8 @@ model {
 
   {
     vector[D] pv;                                 // peculiar velocity
-    // real pv0;
     vector[D] pz;                                 // peculiar redshift
-    // real pz0;
     real dm_sig;
-    // real pz0term;
-    // real dm0term;
 
     vector[N-1] alpha_rescale;
 
@@ -123,12 +119,8 @@ model {
 
     // peculiar redshift  Davis & Scrimgeour peculiar velocities https://arxiv.org/pdf/1405.0105.pdf
     pv = pv_sig * pv_unit;
-    // pv0 = pv_sig * pv0_unit;
     pz = sqrt((pv+1) ./ (1-pv))-1;
-    // pz0 = sqrt((pv0+1) / (1-pv0))-1;
-    // pz0term = fiveoverlog10 * pz0/zcmb0;
     dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
-    // dm0term = dm_sig*dm0_unit;
 
     // the new alpha with scaling and adding a 0 for the last element
     for (n in 1:N-2){
@@ -177,9 +169,9 @@ model {
   // zcmb ~ normal(z_true,zerr);                   // redshift data
   // zcmb0 ~ normal(z0_true,zerr0);
 
-  // mass_0 ~ normal(mass_mn, 2*tan(mass_unif));
-  // mass0_0 ~ normal(mass_mn, 2*tan(mass_unif));
-  // mass_unif ~ uniform(0,pi()/2);
+  mass_0 ~ normal(mass_mn, 2*tan(mass_unif));
+  mass0_0 ~ normal(mass_mn, 2*tan(mass_unif));
+  mass_unif ~ uniform(0,pi()/2);
 
   mass ~ normal(mass_0, emass);
   mass0 ~ normal(mass0_0, emass0);

@@ -164,11 +164,8 @@ def view():
 
    from chainconsumer import ChainConsumer
    c = ChainConsumer()
-
-   # c.add_chain([data['steplow'],data['stephigh'],stepdelta,data['stepnone'],data['mass_mn'],2*numpy.tan(data['mass_unif'])], parameters= \
-   #    [r"$m_{\mathrm{low}}$", r"$m_{\mathrm{high}}$", r"$m_{\mathrm{high}}-m_{\mathrm{low}}$", r"$m_{\mathrm{none}}$", r"$\langle M_{\mathrm{host}} \rangle$", r"$\sigma_{M_{\mathrm{host}}}$"],name='Master')
-   c.add_chain([data['steplow'],data['stephigh']], parameters= \
-      [r"$m_{\mathrm{low}}$", r"$m_{\mathrm{high}}$"],name='Master')
+   c.add_chain([data['steplow'],data['stephigh'],data['mass_mn'],2*numpy.tan(data['mass_unif'])], parameters= \
+      [r"$m_{\mathrm{low}}$", r"$m_{\mathrm{high}}$", r"$\langle M_{\mathrm{host}} \rangle$", r"$\sigma_{M_{\mathrm{host}}}$"],name='Master')
    fig =  c.plotter.plot(figsize="page")
    fig.savefig("mass_fit.pdf",bbox_inches='tight')
 
@@ -178,15 +175,7 @@ def run():
 
    firstL_snp_sig_unif= first['L_snp_sig_unif']
 
-
-
    nchain =4
-
-   #initial condition for mass trimming extreme cases for intitial condition
-   tanh_mass_0_init = [numpy.tanh(6*(numpy.random.normal(mass,emass)-10)) for _ in range(nchain)]
-   tanh_mass_0_init = numpy.array(tanh_mass_0_init)
-   tanh_mass_0_init[tanh_mass_0_init ==1] = 1-1e-16
-   tanh_mass_0_init[tanh_mass_0_init ==-1] = -1+1e-16
 
    init = [{
       # 'alpha': numpy.zeros(N-1) , \
@@ -215,15 +204,15 @@ def run():
       'mass_0' : mass,\
       'mass0_0' : mass0,\
       'steplow': 0,\
-      'stephigh': 0.02\
-      # 'mass_mn': 10,\
-      # 'mass_unif': 0.5 \
+      'stephigh': 0.02,\
+      'mass_mn': 10,\
+      'mass_unif': 0.5 \
       } \
    for _ in range(nchain)]
 
    sm = pystan.StanModel(file='c2mag.stan')
    control = {'stepsize':1}
-   fit = sm.sampling(data=data, iter=500, chains=nchain,control=control,init=init, thin=1)
+   fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
 
    output = open('c2mag.pkl','wb')
    pickle.dump(fit.extract(), output, protocol=2)
