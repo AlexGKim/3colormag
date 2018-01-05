@@ -179,7 +179,7 @@ model {
 
   // mass ~ normal(mass_0, emass);
   // mass0 ~ normal(mass0_0, emass0);
-  mass ~ normal(atanh(tanh_mass_0)/5+10, emass);
-  mass0 ~ normal(atanh(tanh_mass0_0)/5+10., emass0);
+  mass ~ normal(atanh(tanh_mass_0)/6+10, emass);
+  mass0 ~ normal(atanh(tanh_mass0_0)/6+10., emass0);
 
 }

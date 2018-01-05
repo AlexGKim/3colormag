@@ -133,13 +133,11 @@ def view():
 
    # res = dm_meas-mn_meas
    # res_cov = dm_cov + mn_cov
-   # stepcorr0 = numpy.zeros(len(data['mass0_0']))
-   # stepcorr0[data['mass0_0'] < 10] = data['steplow'][data['mass0_0'] < 10]
-   # stepcorr0[data['mass0_0'] > 10] = data['stephigh'][data['mass0_0'] > 10]
-   # (low,lowm,lowp)= numpy.percentile(data['stepnone'] + data['steplow']-stepcorr0,(50,50-34,50+34))
-   # (high,highm, highp) = numpy.percentile(data['stepnone']+ data['stephigh']-stepcorr0,(50,50-34,50+34))
 
-   # stepdelta =  data['stephigh'] - data['steplow']
+   # (low,lowm,lowp)= numpy.percentile(step[mass_0<10] - step0[mass_0<10],(50,50-34,50+34))
+   # (high,highm, highp) = numpy.percentile(step[mass_0 >= 10] - step0[mass_0>=10],(50,50-34,50+34))
+
+   # stepdelta =  data['stephigh']/2
    # mn =numpy.mean(stepdelta)
    # std= numpy.std(stepdelta)
    # print r"${:7.3f} \pm {:7.3f}$".format(mn,std)
@@ -158,13 +156,15 @@ def view():
    # plt.xlim((6.8,13))
    # plt.savefig("mass.pdf",bbox_inches='tight')
 
-   # plt.clf()
-   (fitmass,fitmassm,fitmassp) = numpy.percentile(numpy.arctanh(data['tanh_mass_0'])/5+10,(50,50-34,50+34),axis=0)
+   plt.clf()
+   (fitmass,fitmassm,fitmassp) = numpy.percentile(mass_0,(50,50-34,50+34),axis=0)
    # (fitmass,fitmassm,fitmassp) = numpy.percentile(data['mass_0'],(50,50-34,50+34),axis=0)
-   plt.errorbar(mass,fitmass,xerr=[emass,emass],yerr=[fitmass-fitmassm, fitmassp-fitmass],linestyle='None')
+   plt.errorbar(mass,fitmass,xerr=[emass,emass],yerr=[fitmass-fitmassm, fitmassp-fitmass],linestyle='None',alpha=0.5,color='b')
+   plt.plot(mass,fitmass,'o',linestyle='None',markersize=4,color='b')
    plt.plot([7.1,12.5],[7.1,12.5])
    plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
    plt.ylabel(r'$\theta_{M_{\mathrm{host}}}$')
+   # plt.hxline
    plt.savefig("masses.pdf",bbox_inches='tight')
 
    plt.clf()
@@ -190,7 +190,16 @@ def run():
 
    firstL_snp_sig_unif= first['L_snp_sig_unif']
 
+
+
    nchain =4
+
+   #initial condition for mass trimming extreme cases for intitial condition
+   tanh_mass_0_init = [numpy.tanh(6*(numpy.random.normal(mass,emass)-10)) for _ in range(nchain)]
+   tanh_mass_0_init = numpy.array(tanh_mass_0_init)
+   # tanh_mass_0_init[tanh_mass_0_init ==1] = 1-1e-8
+   # tanh_mass_0_init[tanh_mass_0_init ==-1] = -1+1e-8
+
    init = [{
       # 'alpha': numpy.zeros(N-1) , \
       # 'pv_unit': pv_prior[1:] ,\
@@ -217,8 +226,8 @@ def run():
       'snp_mn': first['snp_mn'].mean(axis=0)+numpy.random.normal(0,first['snp_mn'].std(axis=0)), \
       # 'mass_0' : mass,\
       # 'mass0_0' : mass0,\
-      'tanh_mass_0' : numpy.tanh(5*(mass-10)),\
-      'tanh_mass0_0' : numpy.tanh(5*(mass0-10)),\
+      'tanh_mass_0' : tanh_mass_0_init[_],\
+      'tanh_mass0_0' : numpy.tanh(10*(mass0-10)),\
       'steplow': 0,\
       # 'stepnone': 0,\
       'stephigh': 0.02\
