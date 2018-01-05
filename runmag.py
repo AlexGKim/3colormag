@@ -118,53 +118,40 @@ def view():
    data = pickle.load(pkl_file)
    pkl_file.close()
 
-   # mn=numpy.zeros((data['alpha'].shape[0], len(inda)))
-   # for i in xrange(len(inda)):
-   #    for j in xrange(data['alpha'].shape[0]):
-   #      mn[j,i] = numpy.dot(data['alpha'][j,:]*alpha_scale[:-1],data['snparameters'][j,indapy[i],:-1])
-   # mn_meas = numpy.mean(mn,axis=0)
-   # mn_cov = numpy.cov(mn,rowvar=False)
+   mn=numpy.zeros((data['alpha'].shape[0], len(inda)))
+   for i in xrange(len(inda)):
+      for j in xrange(data['alpha'].shape[0]):
+        mn[j,i] = numpy.dot(data['alpha'][j,:]*alpha_scale[:-1],data['snparameters'][j,indapy[i],:-1])
+   mn_meas = numpy.mean(mn,axis=0)
+   mn_cov = numpy.cov(mn,rowvar=False)
 
-   # dm = inputfit['Delta']-inputfit['Delta'][:,0][:,None]
-   # dm = dm[:,1:]
-   # dm = dm[:,indapy]
-   # dm_meas = numpy.mean(dm,axis=0)
-   # dm_cov = numpy.cov(dm,rowvar=False)
+   dm = inputfit['Delta']-inputfit['Delta'][:,0][:,None]
+   dm = dm[:,1:]
+   dm = dm[:,indapy]
+   dm_meas = numpy.mean(dm,axis=0)
+   dm_cov = numpy.cov(dm,rowvar=False)
 
-   # res = dm_meas-mn_meas
-   # res_cov = dm_cov + mn_cov
+   res = dm_meas-mn_meas
+   res_cov = dm_cov + mn_cov
 
-   # (low,lowm,lowp)= numpy.percentile(step[mass_0<10] - step0[mass_0<10],(50,50-34,50+34))
-   # (high,highm, highp) = numpy.percentile(step[mass_0 >= 10] - step0[mass_0>=10],(50,50-34,50+34))
-
-   # stepdelta =  data['stephigh']/2
-   # mn =numpy.mean(stepdelta)
-   # std= numpy.std(stepdelta)
-   # print r"${:7.3f} \pm {:7.3f}$".format(mn,std)
-   # (mn,mnm,mnp) = numpy.percentile(stepdelta,(50,50-34,50+34))
-   # print mn, mn-mnm, mnp-mn
-   # ax = plt.errorbar(mass, res, marker='o',linestyle="None",xerr=[emass,emass],yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
-   # plt.hlines(low, 6.8,10)
-   # plt.hlines(lowm, 6.8,10,color='red')
-   # plt.hlines(lowp, 6.8,10,color='red')
-   # plt.hlines(high, 10,12.4)
-   # plt.hlines(highm, 10,12.4,color='red')
-   # plt.hlines(highp, 10,12.4,color='red')
-   # plt.errorbar(12.75,high,yerr=[[mn-mnm, mnp-mn]],ecolor='black',elinewidth=3,marker='o')
-   # plt.ylabel(r'Relative magnitude offset $\vec{\Delta}_{.0} - \mu[0:N]$ (mag)')
-   # plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
-   # plt.xlim((6.8,13))
-   # plt.savefig("mass.pdf",bbox_inches='tight')
+   ax = plt.errorbar(mass, res, marker='o',linestyle="None",xerr=[emass,emass],yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
+   x=numpy.arange(6.8,13,0.05)
+   (step,stepm,stepp)= numpy.percentile(data['stephigh'],(50,50-34,50+34),axis=0)/2
+   plt.plot(x,step*numpy.tanh(10*(x-10)),color='black')
+   plt.plot(x,stepm*numpy.tanh(10*(x-10)),linestyle=':',color='r')
+   plt.plot(x,stepp*numpy.tanh(10*(x-10)),linestyle=':',color='g')
+   plt.ylabel(r'Relative magnitude offset $\vec{\Delta}_{.0} - \mu[0:N]$ (mag)')
+   plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
+   plt.xlim((6.8,13))
+   plt.savefig("mass.pdf",bbox_inches='tight')
 
    plt.clf()
-   (fitmass,fitmassm,fitmassp) = numpy.percentile(mass_0,(50,50-34,50+34),axis=0)
-   # (fitmass,fitmassm,fitmassp) = numpy.percentile(data['mass_0'],(50,50-34,50+34),axis=0)
+   (fitmass,fitmassm,fitmassp) = numpy.percentile(data['mass_0'],(50,50-34,50+34),axis=0)
    plt.errorbar(mass,fitmass,xerr=[emass,emass],yerr=[fitmass-fitmassm, fitmassp-fitmass],linestyle='None',alpha=0.5,color='b')
    plt.plot(mass,fitmass,'o',linestyle='None',markersize=4,color='b')
    plt.plot([7.1,12.5],[7.1,12.5])
    plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
    plt.ylabel(r'$\theta_{M_{\mathrm{host}}}$')
-   # plt.hxline
    plt.savefig("masses.pdf",bbox_inches='tight')
 
    plt.clf()
@@ -197,8 +184,8 @@ def run():
    #initial condition for mass trimming extreme cases for intitial condition
    tanh_mass_0_init = [numpy.tanh(6*(numpy.random.normal(mass,emass)-10)) for _ in range(nchain)]
    tanh_mass_0_init = numpy.array(tanh_mass_0_init)
-   # tanh_mass_0_init[tanh_mass_0_init ==1] = 1-1e-8
-   # tanh_mass_0_init[tanh_mass_0_init ==-1] = -1+1e-8
+   tanh_mass_0_init[tanh_mass_0_init ==1] = 1-1e-16
+   tanh_mass_0_init[tanh_mass_0_init ==-1] = -1+1e-16
 
    init = [{
       # 'alpha': numpy.zeros(N-1) , \
@@ -224,12 +211,9 @@ def run():
       'snparameters_alpha' :first['snparameters_alpha'].mean(axis=0)+numpy.random.normal(0,first['snparameters_alpha'].std(axis=0)),\
       'L_snp_sig_unif': firstL_snp_sig_unif.mean(axis=0),\
       'snp_mn': first['snp_mn'].mean(axis=0)+numpy.random.normal(0,first['snp_mn'].std(axis=0)), \
-      # 'mass_0' : mass,\
-      # 'mass0_0' : mass0,\
-      'tanh_mass_0' : tanh_mass_0_init[_],\
-      'tanh_mass0_0' : numpy.tanh(10*(mass0-10)),\
+      'mass_0' : mass,\
+      'mass0_0' : mass0,\
       'steplow': 0,\
-      # 'stepnone': 0,\
       'stephigh': 0.02\
       # 'mass_mn': 10,\
       # 'mass_unif': 0.5 \

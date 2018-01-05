@@ -59,13 +59,10 @@ parameters {
   // vector[N-1] snparameters[D];
 
   // mass step parameters
-  // vector [D_gal] mass_0;
-  // real mass0_0;
-  vector<lower=-1, upper=1> [D_gal] tanh_mass_0;
-  real<lower=-1, upper=1>  tanh_mass0_0;
+  vector [D_gal] mass_0;
+  real mass0_0;
 
   real steplow;
-  // real stepnone;
   real stephigh;
 
   // real mass_mn;
@@ -119,29 +116,15 @@ model {
     dm_sig = (dm_mu+dm_tau*tan(dm_sig_unif));
     dm0term = dm_sig*dm0_unit;
 
-
+    tanh_mass0_0 = tanh(10*(mass0_0-10));
+    tanh_mass_0 = tanh(10*(mass_0-10));
 
     stepnorm =stephigh/2;
-    stepcorr = rep_vector(- stepnorm*(tanh_mass0_0) - steplow, D);
+    stepcorr = rep_vector(- stepnorm*tanh_mass0_0 - steplow, D);
 
     for (d in 1:D_gal){
       stepcorr[inda[d]] = stepnorm*(tanh_mass_0[d] - tanh_mass0_0);
     }
-
-    // if (mass0_0 < 10){
-    //   stepcorr0 = steplow;
-    // } else{
-    //   stepcorr0 = stephigh;
-    // }
-    // stepcorr = rep_vector(-stepcorr0, D);
-
-    // for (d in 1:D_gal){
-    //   if (mass_0[d] < 10){
-    //     stepcorr[inda[d]] = steplow-stepcorr0;
-    //   } else {
-    //     stepcorr[inda[d]] = stephigh-stepcorr0;
-    //   }
-    // }
 
     // data prediction
     for (d in 1:D){           //for each supernova pair
@@ -177,9 +160,9 @@ model {
   // mass0_0 ~ normal(mass_mn, 2*tan(mass_unif));
   // mass_unif ~ uniform(0,pi()/2);
 
-  // mass ~ normal(mass_0, emass);
-  // mass0 ~ normal(mass0_0, emass0);
-  mass ~ normal(atanh(tanh_mass_0)/6+10, emass);
-  mass0 ~ normal(atanh(tanh_mass0_0)/6+10., emass0);
+  mass ~ normal(mass_0, emass);
+  mass0 ~ normal(mass0_0, emass0);
+  // mass ~ normal(atanh(tanh_mass_0)/10+10, emass);
+  // mass0 ~ normal(atanh(tanh_mass0_0)/10+10., emass0);
 
 }
