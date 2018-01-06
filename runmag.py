@@ -137,7 +137,7 @@ def view():
    ax = plt.errorbar(mass, res, marker='o',linestyle="None",xerr=[emass,emass],yerr = [numpy.sqrt(numpy.diag(res_cov)), numpy.sqrt(numpy.diag(res_cov))])
    x=numpy.arange(6.8,13,0.05)
    (step,stepm,stepp)= numpy.percentile(data['stephigh'],(50,50-34,50+34),axis=0)/2
-   zterm = numpy.mean(data['zeroterm'])
+   zterm = numpy.mean(data['zeroterm'] + data['stephigh']/2*numpy.tanh(10*(data['mass0_0']-10)))
    plt.plot(x,step*numpy.tanh(10*(x-10))-zterm,color='black')
    plt.plot(x,stepm*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='r')
    plt.plot(x,stepp*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='g')
@@ -155,18 +155,11 @@ def view():
    plt.ylabel(r'$\theta_{M_{\mathrm{host}}}$')
    plt.savefig("masses.pdf",bbox_inches='tight')
 
-   plt.clf()
-   plt.plot(data['steplow'],label='steplow')
-   plt.plot(data['stephigh'],label='stephigh')
-   # plt.plot(data['stepnone'],label='stepnone')
-   plt.legend()
-   plt.savefig("masschain.pdf",bbox_inches='tight')
-
    from chainconsumer import ChainConsumer
    c = ChainConsumer()
    c.add_chain([data['steplow'],data['stephigh'],data['mass_mn'],2*numpy.tan(data['mass_unif'])], parameters= \
-      [r"$m_{\mathrm{low}}$", r"$m_{\mathrm{high}}$", r"$\langle M_{\mathrm{host}} \rangle$", r"$\sigma_{M_{\mathrm{host}}}$"],name='Master')
-   fig =  c.plotter.plot(figsize="page")
+      [r"$M_{\mathrm{low}}$", r"$\Delta_{\mathrm{high}}$", r"$\langle M_{\mathrm{host}} \rangle$", r"$\sigma_{M_{\mathrm{host}}}$"],name='Master')
+   fig =  c.plotter.plot(figsize="page",truth=numpy.zeros(4))
    fig.savefig("mass_fit.pdf",bbox_inches='tight')
 
 def run():    
@@ -175,7 +168,7 @@ def run():
 
    firstL_snp_sig_unif= first['L_snp_sig_unif']
 
-   nchain =4
+   nchain =8
 
    init = [{
       # 'alpha': numpy.zeros(N-1) , \

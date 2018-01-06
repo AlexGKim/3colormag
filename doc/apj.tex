@@ -11,7 +11,7 @@
 
 \begin{document}
 
-\title{}
+\title{Standardization of Type~Ia Supernova Absolute Magnitudes}
 \author[0000-0001-6315-8743]{A.~G.~Kim}
 \affiliation{    Physics Division, Lawrence Berkeley National Laboratory, 
     1 Cyclotron Road, Berkeley, CA, 94720}
@@ -204,24 +204,31 @@ The objective of this work is to determine the relative absolute magnitudes of S
 The first step is to model peak-magnitude colors as a function of parameters.  The second step is to model the relative achromatic magnitudes
 as a function of the same parameters.
 The two models in combination give the  relative absolute magnitudes of SNe~Ia.
-The color analysis is expounded upon in the earlier draft article.  This note focuses on the relative achromatic magnitudes.
+The color analysis is expounded upon in the earlier draft article.  This note focuses on the relative achromatic magnitudes
+and the resulting relative absolute-magnitude residuals.
 
 \section{Color Analysis Summary}
 \label{color:sec}
+The color analysis is described in a separate article.
 The color analysis gives per-supernova parameters
 $\vec{\Delta}$,  $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$,   $\vec{x}_1$,  $\vec{A}_{V,p}$,
-where each vector has $N$ elements, one for each of the supernovae in the sample.  The parameters $g_0$ and $g_1$ are attributed to dust
-and are not included as per-supernova parameters.  The CMB redshifts of the supernovae are $\vec{z}$.  Define a new set of vectors such that
+where each vector has $N$ elements, one for each of the supernovae in the sample.  
+Relative magnitude offsets are given by $\vec{\Delta}$; spectral features by $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$;
+SALT2 $x_1$ by $\vec{x}_1$; a newly identified color parameter by $\vec{A}_{V,p}$.
+The parameters $\vec{g}_0$ and $\vec{g}_1$ also introduced in the color analysis are attributed to dust
+and are not included as per-supernova parameters.  The CMB redshifts of the supernovae are $\vec{z}$.  We define a new set of vectors such that
 $\vec{\Delta}_{.0} = (\vec{\Delta} - \Delta[0])[1:]$ with length $N-1$; here each per-supernova parameter is measured relative to the
-reference supernova arbitrarily selected to be the one with index 0.
-
+reference supernova arbitrarily selected to be the one with index 0.\footnote{Python numpy notation is used for vector indexing.}
 The data vector for the current analysis is the concatenation of these vectors
 \[
 \vec{y} = \left\{\vec{\Delta}_{.0} , \overrightarrow{EW}_{Ca\,.0} ,  \overrightarrow{EW}_{Si\,.0},  \vec{\lambda}_{Si\,.0},   \vec{x}_{1\,.0}, \vec{A}_{V,p\,.0}\right\},
 \]
-which has length $6(N-1)$.  The data covariance $C$ is given by the color analysis.\footnote{In
-the color analysis the per-SN parameters
-are not independent.  The parameters relative to an arbitrary reference supernova are independent.}
+which has length $6(N-1)$.  The data covariance $C$ is given by the color analysis.
+
+In the color analysis, the parameters $\vec{\Delta}$,  $\overrightarrow{EW}_{Ca}$,  $\overrightarrow{EW}_{Si}$,  $\vec{\lambda}_{Si}$,   $\vec{x}_1$,  $\vec{A}_{V,p}$ are not independent by construction.  
+On the other hand $\vec{y}$, the parameters relative to an arbitrary reference supernova, are independent.  It is in this sense that
+this is an analysis of relative absolute magnitudes.
+
 The standard deviations of $\vec{y}$ excepting the first element is denoted as $\vec{\sigma}_{y_{.0}}=\{27,  6.9,  20,   0.98,   0.029\}$.
 
 The  standard deviation of $\vec{A}_{V,p\,.0}$, 0.029,  is comparable to the per element uncertainties from the diagonal of $C$.
@@ -232,7 +239,7 @@ All the other features have per-object measurement uncertainties significantly s
    \includegraphics[width=2.95in]{../sigma_p.pdf}
    \caption{
 Histogram of the uncertainties $\vec{A}_{V,p\,.0}$.  The vertical line is the standard deviation of $\vec{A}_{V,p\,.0}$.
-The posterior of the $\vec{A}_{V,p\,.0}$-component of the model parameter $C_{\text{feature}}$ is plotted.
+The (unnormalized) posterior of the $\sigma_{{A}_{V,p\,.0}}$ is plotted.
    \label{sigma_p:fig}}
 \end{figure}
 
@@ -240,13 +247,18 @@ The posterior of the $\vec{A}_{V,p\,.0}$-component of the model parameter $C_{\t
 \section{Achromatic Magnitude Analysis}
 \label{magnitude:sec}
 \subsection{Model}
+\label{achromaticmodel:sec}
+The model makes a linear relationship between features and achromatic absolute magnitude.  The model
+is presented in the following few paragraphs. 
+
 The model describes the distribution of the SN-feature parameters.  The distribution is modeled as a
 5-dimensional Normal distribution
-with the parameters in Table~\ref{population:tab}.
-The covariance matrix $(\vec{\theta}_{\sigma}I) C_{\text{feature}}  (\vec{\theta}_{\sigma}I)$ is
-decomposed into its standard deviations, $\vec{\sigma}_{\theta}$,
-and its correlation matrix $C_{\text{feature}}$.
-This amounts to $20$ parameters.
+with the parameters in Table~\ref{population:tab}.  The distribution is centered at $\langle \overrightarrow{\text{feature}}\rangle$.
+The matrix
+that describes the Normal is $(\vec{\theta}_{\sigma}I)^T C_{\text{feature}}  (\vec{\theta}_{\sigma}I)$, where
+its standard deviations are $\vec{\sigma}_{\theta}$,
+and its correlation matrix is $C_{\text{feature}}$.
+This description of the features is described by $20$ parameters.
 \begin{table}
 \begin{center}
 \caption{Parameters for the feature population. \label{population:tab}}
@@ -262,14 +274,15 @@ $C_{\text{feature}}$ & $\text{LKJ}(4)$ &  correlation & 10\\
 \end{table}
 
 The model parameterizes the intrinsic parameters of the $N$ supernovae as shown in Table~\ref{feature:tab}.
-The feature pdf's are independent for each supernova, such that SN indexed by $i$ is associated with the parameters
+They are denoted as $\vec{\theta}_{\mathrm{feature}}$.
+The feature pdf is correlated per supernova, such that the SN indexed by $i$ is associated with the parameters
 $\vec{\theta}^{(i)}=\left\{\theta_{EW_{Ca}}[i], \theta_{EW_{Si}}[i], \theta_{\lambda_{Si}}[i], \theta_{x_1}[i], \theta_{p}[i] \right\}$
 that are drawn as
 \begin{equation}
 \vec{\theta}^{(i)} \sim \mathcal{N}(\vec{\theta}_{\mathit{mn}}, (\vec{\theta}_{\sigma}I) C_{\text{feature}}  (\vec{\theta}_{\sigma}I).
 \label{feature:pdf}
 \end{equation}
-These are $5(N-1)$ of these parameters.
+These are $5(N-1)$ feature parameters.
 
 \begin{table}
 \begin{center}
@@ -288,9 +301,11 @@ $\vec{\theta}_{p}$ & Eq.~\ref{feature:pdf}& $\sigma_p\phi_{\hat{V}}  {p} $ featu
 \end{table}
 
 The achromatic magnitude is related linearly to the intrinsic features with residual dispersion labeled by the parameters in
-Table~\ref{mag:tab}
+Table~\ref{mag:tab}.  The feature cofactors are denoted as $\vec{\alpha}$ and the intrinsic magnitude dispersion
+is $\sigma_M$.
 With five features there should be five linear coefficients $\vec{\alpha}$.  The quality of the input data is insufficient to
-simultaneously constrain $\sigma_p\phi_{\hat{V}}  {p}$ and their associated $\alpha$, so it is not included in this model.
+simultaneously constrain $\vec{\theta}_p$ and their associated cofactor, so we do not attempt to make a achromatic magnitude
+correction with this feature.
 These are 5 of these magnitude-correction parameters.
 \begin{table}
 \begin{center}
@@ -306,7 +321,7 @@ $\sigma_M$ & $\text{Cauchy}(0, 0.1)$; $>0$ & intrinsic dispersion & 1\\
 \end{table}
 
 For expository and computational convenience the  parameters in Table~\ref{dispersion:tab} are introduced. 
-These parameters are not uniquely constrained but manifest dispersion.
+These parameters are not uniquely constrained but manifest dispersion due to peculiar velocities and intrinsic magnitude dispersion.
 \begin{table}
 \begin{center}
 \caption{Parameters for per-supernova magnitude dispersion.\label{dispersion:tab}}
@@ -315,21 +330,23 @@ These parameters are not uniquely constrained but manifest dispersion.
 Parameter & pdf & Description & \# parameters\\ \hline
 $\vec{v}$ & $\mathcal{N}(0,10^{-3})$ &  peculiar velocity & N \\\
 $ \overrightarrow{dm}$ &  $\mathcal{N}(0,\sigma_M)$  &  peculiar magnitude & N \\
+$\overrightarrow{\delta z}$ & $\sqrt{(1+\vec{v})/ (1-\vec{v})}-1$ & peculiar redshift& N \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
 
-The following derived parameters are defined from the above parameters:
-The residual relative to reference SN~0 observed as $\vec{\Delta}_{.0}$
+The parameters $\vec{\mu}$ shown in Table~\ref{mu:tab}  are derived from the parameters already introduced.
+The  prediction for the  magnitude residual relative to reference SN~0, $ \mu[i]; 0 \le i < N-1$,
 is modeled as a linear function of the supernova features plus terms for peculiar velocity and intrinsic dispersion.
+The remaining elements of $\vec{\mu}$ are the model feature parameters.
+
 \begin{table}
 \begin{center}
 \caption{Derived parameters that correspond to the data.\label{mu:tab}}
 \begin{tabular}{rccc}
 \hline
 Parameter & Definition & Description\\ \hline
-$\overrightarrow{\delta z}$ & $\sqrt{(1+\vec{v})/ (1-\vec{v})}-1$ & peculiar redshift\\
 $ \mu[i]; 0 \le i < N-1$ & $\sum_{k=0}^{3} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right)$ & residual from reference\\
 $ \mu[N:6(N-1)]$ & $\left\{\vec{\theta}_{EW_{Ca}},\vec{\theta}_{EW_{Si}}, \vec{\theta}_{\lambda_{Si}}, \vec{\theta}_{x_1},\vec{\theta}_{p} \right\}$ &  features \\
 \hline
@@ -343,10 +360,10 @@ The model likelihood is described by
 \end{equation*}
 
 The model does not include redshift measurement uncertainty.  Some of the SNf supernovae have redshift uncertainties of 0.01.  Interpreting
-this uncertainty as Gaussian produces singular magnitude corrections from peculiar velocities.
+this uncertainty as Gaussian gives peculiar velocities that have singular magnitude corrections.
 
 \subsection{Results}
-Posterior contours for pairs of
+Posterior contours for pairs of the distribution parameters
 $\vec{\theta}_{\mathit{mn}}$ and
 $\vec{\sigma}_{\theta}$ are shown in Fig.~\ref{confidence:fig}. 
 
@@ -359,26 +376,27 @@ Posterior contours for pairs of
 $\vec{\theta}_{\mathit{mn}}$ and
 $\vec{\sigma}_{\theta}$ .  Right: Posterior contours for pairs of $\vec{\alpha}$ and
 $\sigma_M$.  Dashed lines correspond to zero.
-The contours correspond to 39\%,  86\%, and 98.9\%   confidence levels that correspond to 2-dimensional 1, 2, and  3$\sigma$ levels.
+The contours are 39\%,  86\%, and 98.9\%   confidence levels that correspond to 2-dimensional 1, 2, and  3$\sigma$ levels.
 N.B. The package used to make the plot renormalizes ranges in a way that doesn't appear in the plot, need
 to figure  this out.
    \label{confidence:fig}}
 \end{figure}
 
 As noted in
-\S\ref{color:sec}, the measurement uncertainty of ${A_{V,p\,.0}}$ is comparable to the population standard deviation.  A consequence
-appears when modeling and fitting
-the underlying distribution as a Normal.  The resulting
-posterior for  $\sigma_{{A_{V,p\,.0}}}$  accommodates no intrinsic dispersion, as
-seen in both Figs.~\ref{sigma_p:fig} and \ref{confidence:fig}.  If the underlying distribution and a linear coefficient relating ${A_{V,p\,.0}}$
-and achromatic magnitude were simultaneously fit, the intrinsic  $\vec{\theta}_{A_{V,p\,.0}}$, weakly constrained by the 
+\S\ref{color:sec}, the measurement uncertainty of ${\vec{A}_{V,p\,.0}}$ is comparable to the population standard deviation.  As a  consequence
+the resulting
+posterior for  $\sigma_{{A_{V,p\,.0}}}$  accommodates zero intrinsic dispersion, as
+seen in both Figs.~\ref{sigma_p:fig} and \ref{confidence:fig}.  If 
+a linear coefficient relating ${A_{V,p\,.0}}$
+and achromatic magnitude were  fit along with the underlying distribution, the intrinsic  $\vec{\theta}_{A_{V,p\,.0}}$, weakly constrained by the 
 low signal-to-noise measurements, would be
 free to take on values that eliminate intrinsic dispersion.  As the data does not provide a strong constraint on an underlying Normal distribution,
 we do not attempt to fit an $\alpha$ term that corresponds to  ${A_{V,p\,.0}}$.
 
 
 Posterior contours for pairs  of $\vec{\alpha}$ and
-$\sigma_M$ are shown in Fig.~\ref{confidence:fig}, and 68\%-ile credible intervals are given in Table~\ref{magci:tab}.
+$\sigma_M$, the parameters that describe the achromatic magnitude correction and residual dispersion, are shown in Fig.~\ref{confidence:fig}.
+The 68\%-ile credible intervals are given in Table~\ref{magci:tab}.
 
 \begin{table}
     \centering
@@ -398,20 +416,95 @@ $\sigma_M$ are shown in Fig.~\ref{confidence:fig}, and 68\%-ile credible interva
 A systematic difference in the SALT-determined absolute magnitudes of supernovae from low- and high-mass host galaxies is seen in
 our sample and many others.
 
+\subsection{Data}
+
 The output of the color analysis
-described in \S\ref{color:sec} includes the grey offset between supernovae and a fiducial supernovae $\vec{\Delta}_{.0}$.
+described in \S\ref{color:sec} includes the grey magnitude offsets relative to a fiducial supernova $\vec{\Delta}_{.0}$.
 The first $N-1$ elements of $\mu$, as given in Table~\ref{mu:tab}, are the model prediction for those offsets.
-We consider  a model in which the residuals after achromatic magnitude correction, $\vec{\Delta}_{.0} - \mu[0:N]$, are dependent
+Our magnitude residuals after achromatic magnitude correction are $\vec{\Delta}_{.0} - \mu[0:N]$.
+We consider  a model in which the residuals are dependent
 on host-galaxy mass.
 
-For the analysis in this section, the input are the results from both the color analysis of \S\ref{color:sec} and the achromatic magnitude analysis of 
-\S\ref{magnitude:sec}, in the form of $\vec{\Delta}_{.0} - \mu[0:N]$.  Its
-uncertainties, $C$, is the quadratic sum of the covariances of the two analyses.  Host-galaxy masses and uncertainties, $\vec{M}_{\text{host}}$  and
+For the analysis in this section, the input includes $\vec{\Delta}_{.0} - \mu[0:N]$ from
+the results of both the color analysis of \S\ref{color:sec} and the achromatic magnitude analysis of 
+\S\ref{magnitude:sec}.  The
+uncertainty, $C$, is approximated as the quadratic sum of the covariances of the two analyses.  
+While there is covariance between $\vec{\Delta}_{.0}$ and $\mu[0:N]$ that should be taken into account when
+subtracting the two,  it is not readily available from the analysis
+and its contribution is small relative to the total uncertainties in $\mu[0:N]$.
+The other inputs are 
+host-galaxy masses (in units of $\log{(M_{\mathrm{host}}/M_{\odot})}$) and uncertainties, $\vec{M}_{\text{host}}$  and
 $\vec{\sigma}_{M_{\text{host}}}$,
-from \citet{2013ApJ...770..108C} are used as input.  Only the subset of supernovae of galaxies with a host mass are included in the analysis.
+from \citet{2013ApJ...770..108C}.  Only the subset of supernovae of galaxies with a host mass are included in the analysis.
+These inputs are shown in Fig.~\ref{mass:fig}.
 
-The model is described in Table~\ref{mass:tab}.
-The observations are drawn as
+\begin{figure}[htbp] %  figure placement: here, top, bottom, or page
+   \centering
+   \includegraphics[width=2.95in]{../mass.pdf}
+   \caption{Magnitude-offset residuals after achromatic correction versus host-galaxy mass.   Overplotted are the mean
+   and $\pm1 \sigma$ mass step.     \label{mass:fig}}
+\end{figure}
+
+\subsection{Model}
+
+The achromatic model of \S\ref{achromaticmodel:sec}.is extended to accommodate a mass step.
+
+We model the supernova absolute magnitude as depending directly on the host mass  as
+\begin{equation}
+M_{\mathrm{host}} = 0.5\Delta_{\mathrm{step}} \tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} + M_{\mathrm{low}},
+\end{equation}
+where $\theta_{M_{\text{host}}}$ is the host mass,  $M_{\mathrm{low}}$ the  
+absolute magnitude from low-mass hosts, and $\Delta_{\mathrm{step}}$  magnitude step to high-mass hosts.  Hamiltonian
+Monte Carlo relies on differentiable posteriors, so the hyperbolic tangent is used to approximate the step function used in other analyses
+with the factor 10 large enough to approximate the step while not engendering numerical precision problems.
+The host-mass effect on magnitudes relative to a fiducial supernova is then
+\begin{equation}
+M_{\mathrm{host}} - M_{\mathrm{host},0}= 0.5\Delta_{\mathrm{step}}
+\left(
+\tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} -
+\tanh{\left(10(\theta_{M_{\mathrm{host},0}}-10\right)}
+\right).
+\label{step:eqn}
+\end{equation}
+
+While in a hierarchical analysis all supernovae can be used to measure the mass step, for the objectives of this article we want
+objects that have host-galaxy measurements to contribute most to the measurement.  This is accomplished by
+modeling absolute magnitudes of supernovae without a host measurement as constant independent
+of the mass-step parameters
+$M_{\mathrm{hostless}}$.  Noting that our fiducial supernova does have a host mass, the effect on magnitudes relative to a fiducial supernova 
+for supernovae with a host mass is
+\begin{equation}
+M_{\mathrm{hostless}} - M_{\mathrm{host},0}= M_{\mathrm{hostless}} - M_{\mathrm{low}} - 0.5\Delta_{\mathrm{step}}
+\tanh{\left(10(\theta_{M_{\text{host},0}}-10)\right)} .
+\label{step:eqn}
+\end{equation}
+This gives two parameters that describe the host-dependent absolute magnitude, $M'_{\mathrm{low}} \equiv (M_{\mathrm{low}} - M_{\mathrm{hostless}})$ and $\Delta_{\mathrm{step}}$.  For the rest of the article the prime is dropped from the new parameter for a redefined  $M_{\mathrm{low}}$.
+
+The underlying distribution of host mass is described by a Normal distribution with mean
+$\langle M_{\text{host}} \rangle$ and standard deviation
+$\sigma_{M_{\text{host}}}$.
+The subset of supernovae with a host-galaxy mass measurement has parameters for the true mass $\vec{\theta}_{M_{\text{host}}}$.
+
+The model parameters are summarized in Table~\ref{mass:tab}.
+
+\begin{table}
+\begin{center}
+\caption{Parameters of the mass-step model.\label{mass:tab}}
+\begin{tabular}{rccc}
+\hline
+Parameter & pdf & Description\\ \hline
+$\langle M_{\text{host}} \rangle$ &flat& mass distribution mean \\
+$\sigma_{M_{\text{host}}}$ &$\text{Cauchy}(0,2)$; $>0$& mass distribution s.d. \\
+$\vec{\theta}_{M_{\text{host}}}$ &$\mathcal{N}(\langle M_{\text{host}} \rangle,\sigma_{M_{\text{host}}})$ &intrinsic host-galaxy mass\\
+$m_{\mathrm{hostless}}$ & flat & magnitude of SNe with no host-mass measurement\\
+$\Delta_{\mathrm{high}}$ & flat & magnitude offset of high-mass SNe relative to low mass\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+The inputs are taken to be drawn as
 \begin{align}
 \vec{\Delta}_{.0} - \mu[0:N] &  \sim \mathcal{N}(\vec{m},C) \\
 \vec{M}_{\text{host}} & \sim \mathcal{N}(\vec{\theta}_{M_{\text{host}}},\vec{\sigma}_{M_{\text{host}}}),
@@ -419,45 +512,39 @@ The observations are drawn as
 where
 \begin{equation}
 m[i]=\begin{cases}
-m_{low} & \quad \text{if } \theta_{M_{\text{host}}}[i] \le10 \\
-m_{low}+\Delta_{high}& \quad \text{if } \theta_{M_{\text{host}}}[i] > 10 \\
+0.5\Delta_{\mathrm{step}}
+\left(
+\tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} -
+\tanh{\left(10(\theta_{M_{\mathrm{host},0}}-10\right)}
+\right)
+& \quad \text{if SN }i\text{ has host-mass measurement} \\
+-M_{\mathrm{low}} - 0.5\Delta_{\mathrm{step}}& \quad \text{if SN }i\text{ has no host-mass measurement}  \\
 \end{cases}.
 \end{equation}
 
-\begin{table}
-\begin{center}
-\caption{Derived parameters that correspond to the data.\label{mass:tab}}
-\begin{tabular}{rccc}
-\hline
-Parameter & pdf & Description\\ \hline
-$\langle M_{\text{host}} \rangle$ &flat& mass distribution mean \\
-$\sigma_{M_{\text{host}}}$ &$\text{Cauchy}(0,2)$; $>0$& mass distribution s.d. \\
-$\vec{\theta}_{M_{\text{host}}}$ &$\mathcal{N}(\langle M_{\text{host}} \rangle,\sigma_{M_{\text{host}}})$ &intrinsic host-galaxy mass\\
-$m_{low}$ & flat & magnitude offset of low-mass SNe\\
-$\Delta_{high}$ & flat & magnitude offset of high-mass SNe relative to low mass\\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
+\subsection{Results}
 
-
+The posteriors of the global parameters are shown in Fig.~\ref{mass_fit:fig}.  The posterior of $\Delta_{\text{high}}$
+is within the 2$\sigma$ confidence region.  
+The mean and $\pm1\sigma$ mass step is plotted in Fig,~\ref{mass:fig}.
 
 \begin{figure}[htbp] %  figure placement: here, top, bottom, or page
    \centering
    \includegraphics[width=2.95in]{../mass_fit.pdf}
-   \caption{
+   \caption{Posterior contours of the global parameters in the mass-step model.
    \label{mass_fit:fig}}
 \end{figure}
 
-
-$ -0.004 \pm   0.011$
+The  model host masses are plotted  against the measured input in  Fig.~\ref{masses:fig}.
+There is no indication for strong bias between fit and measured host mass.
 
 \begin{figure}[htbp] %  figure placement: here, top, bottom, or page
    \centering
-   \includegraphics[width=2.95in]{../mass.pdf}
-   \caption{
-   \label{mass:fig}}
+   \includegraphics[width=2.95in]{../masses.pdf}
+   \caption{Model fit host-galaxy masses versus input masses.  A line with slope one and zero intercept is plotted for reference.
+   \label{masses:fig}}
 \end{figure}
+
 
 \bibliographystyle{apj}
 \bibliography{/Users/akim/Documents/alex}
