@@ -363,6 +363,7 @@ The model does not include redshift measurement uncertainty.  Some of the SNf su
 this uncertainty as Gaussian gives peculiar velocities that have singular magnitude corrections.
 
 \subsection{Results}
+\label{achromaticresults:sec}
 Posterior contours for pairs of the distribution parameters
 $\vec{\theta}_{\mathit{mn}}$ and
 $\vec{\sigma}_{\theta}$ are shown in Fig.~\ref{confidence:fig}. 
@@ -447,46 +448,54 @@ These inputs are shown in Fig.~\ref{mass:fig}.
 
 \subsection{Model}
 
-The achromatic model of \S\ref{achromaticmodel:sec}.is extended to accommodate a mass step.
+The achromatic model of \S\ref{achromaticmodel:sec} is extended to accommodate a mass step.
+This is accomplished by adding to the predicted magnitude a host-mass dependent term $M_\mathrm{host}$.
+The derived parameters
+$ \mu[i]; 0 \le i < N-1$ described in  Table~\ref{mu:tab} are now set to   $\sum_{k=0}^{3} \alpha[k] \theta_k[i] + \frac{5}{\log{10}}\left(\frac{\delta z[i+1]}{z[i+1]} -\frac{\delta z[0]}{z[0]}\right) + \left(dm[i+1]-dm[0]\right) + \left(M_\mathrm{host}[i+1]-M_\mathrm{host}[0]\right)$.
+Note that while there are $N-1$ magnitude differences, there are $N$ host-mass corrections when the fiducial SN 0 is included.
 
-We model the supernova absolute magnitude as depending directly on the host mass  as
+The host-mass term for the supernova absolute magnitude is taken to have the form
 \begin{equation}
-M_{\mathrm{host}} = 0.5\Delta_{\mathrm{step}} \tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} + M_{\mathrm{low}},
+\frac{\Delta_{\mathrm{step}}}{2} \tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} + M_{\mathrm{low}} + M_{\mathrm{offset}},
 \end{equation}
-where $\theta_{M_{\text{host}}}$ is the host mass,  $M_{\mathrm{low}}$ the  
-absolute magnitude from low-mass hosts, and $\Delta_{\mathrm{step}}$  magnitude step to high-mass hosts.  Hamiltonian
-Monte Carlo relies on differentiable posteriors, so the hyperbolic tangent is used to approximate the step function used in other analyses
-with the factor 10 large enough to approximate the step while not engendering numerical precision problems.
-The host-mass effect on magnitudes relative to a fiducial supernova is then
-\begin{equation}
-M_{\mathrm{host}} - M_{\mathrm{host},0}= 0.5\Delta_{\mathrm{step}}
-\left(
-\tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} -
-\tanh{\left(10(\theta_{M_{\mathrm{host},0}}-10\right)}
-\right).
-\label{step:eqn}
-\end{equation}
+where $\theta_{M_{\text{host}}}$ is the host mass,  $\Delta_{\mathrm{step}}$  is the magnitude difference
+between SNe~Ia from extreme low and  high-mass hosts, and the combination $(M_{\mathrm{low}}+M_{\mathrm{offset}})$ the  
+absolute magnitude from low-mass hosts.  Hamiltonian
+Monte Carlo relies on differentiable posteriors, so the hyperbolic tangent is used to approximate the step function used in other analyses.
+The multiplicative factor 10 is large enough to approximate the step while not engendering numerical precision problems.
 
-While in a hierarchical analysis all supernovae can be used to measure the mass step, for the objectives of this article we want
-objects that have host-galaxy measurements to contribute most to the measurement.  This is accomplished by
-modeling absolute magnitudes of supernovae without a host measurement as constant independent
-of the mass-step parameters
-$M_{\mathrm{hostless}}$.  Noting that our fiducial supernova does have a host mass, the effect on magnitudes relative to a fiducial supernova 
-for supernovae with a host mass is
+In the analysis supernovae with and without host-mass measurements are treated distinctly.  We would like the measurement
+of the mass step to be driven by supernovae with a mass measurement.  Therefore, supernovae
+without a mass measurement are assigned a constant magnitude term $M_{\mathrm{offset}}$
+not directly coupled to the mass-step parameter.  Thus
 \begin{equation}
-M_{\mathrm{hostless}} - M_{\mathrm{host},0}= M_{\mathrm{hostless}} - M_{\mathrm{low}} - 0.5\Delta_{\mathrm{step}}
-\tanh{\left(10(\theta_{M_{\text{host},0}}-10)\right)} .
-\label{step:eqn}
+M_{\mathrm{host}}\mathrm[i]=\begin{cases}
+\frac{\Delta_{\mathrm{step}}}{2}
+\tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)+ M_{\mathrm{low}} + M_{\mathrm{offset}}}& \quad \text{if SN }i\text{ has mass measurement} \\
+M_{\mathrm{offset}} & \quad \text{if SN }i\text{ has no measurement}  \\
+\end{cases}.
 \end{equation}
-This gives two parameters that describe the host-dependent absolute magnitude, $M'_{\mathrm{low}} \equiv (M_{\mathrm{low}} - M_{\mathrm{hostless}})$ and $\Delta_{\mathrm{step}}$.  For the rest of the article the prime is dropped from the new parameter for a redefined  $M_{\mathrm{low}}$.
+Fiducial supernova 0 does have a host measurement.
+In the analysis differences between host-mass terms appear
+\begin{equation}
+M_{\mathrm{host}}\mathrm[i] -M_{\mathrm{host}}\mathrm[0]  = 
+\begin{cases}
+\frac{\Delta_{\mathrm{step}}}{2} \left(
+\tanh{\left(10(\theta_{M_{\text{host}}}[i]-10)\right)} - \tanh{\left(10(\theta_{M_{\text{host}}}[0]-10)\right)} \right)
+& \quad \text{if SN }i\text{ has mass measurement} \\
+-\frac{\Delta_{\mathrm{step}}}{2}  \tanh{\left(10(\theta_{M_{\text{host}}}[0]-10)\right)} - M_{\mathrm{low}}
+ & \quad \text{if SN }i\text{ has no measurement}  \\
+\end{cases}.
+\end{equation}
+The $M_{\mathrm{low}}$ and $\Delta_{\mathrm{step}}$ are the two parameters that describe the mass step.
 
 The underlying distribution of host mass is described by a Normal distribution with mean
 $\langle M_{\text{host}} \rangle$ and standard deviation
 $\sigma_{M_{\text{host}}}$.
 The subset of supernovae with a host-galaxy mass measurement has parameters for the true mass $\vec{\theta}_{M_{\text{host}}}$.
 
-The model parameters are summarized in Table~\ref{mass:tab}.
-
+The  model parameters added to the model in \S\ref{achromaticmodel:sec}
+are summarized in Table~\ref{mass:tab}.
 \begin{table}
 \begin{center}
 \caption{Parameters of the mass-step model.\label{mass:tab}}
@@ -504,29 +513,13 @@ $\Delta_{\mathrm{high}}$ & flat & magnitude offset of high-mass SNe relative to 
 \end{table}
 
 
-The inputs are taken to be drawn as
-\begin{align}
-\vec{\Delta}_{.0} - \mu[0:N] &  \sim \mathcal{N}(\vec{m},C) \\
-\vec{M}_{\text{host}} & \sim \mathcal{N}(\vec{\theta}_{M_{\text{host}}},\vec{\sigma}_{M_{\text{host}}}),
-\end{align}
-where
-\begin{equation}
-m[i]=\begin{cases}
-0.5\Delta_{\mathrm{step}}
-\left(
-\tanh{\left(10(\theta_{M_{\text{host}}}-10)\right)} -
-\tanh{\left(10(\theta_{M_{\mathrm{host},0}}-10\right)}
-\right)
-& \quad \text{if SN }i\text{ has host-mass measurement} \\
--M_{\mathrm{low}} - 0.5\Delta_{\mathrm{step}}& \quad \text{if SN }i\text{ has no host-mass measurement}  \\
-\end{cases}.
-\end{equation}
 
 \subsection{Results}
 
 The posteriors of the global parameters are shown in Fig.~\ref{mass_fit:fig}.  The posterior of $\Delta_{\text{high}}$
-is within the 2$\sigma$ confidence region.  
-The mean and $\pm1\sigma$ mass step is plotted in Fig,~\ref{mass:fig}.
+is within the 2$\sigma$ confidence region.  The step is smaller than the $0.085 \pm 0.028$ mag measured by \citet{2013ApJ...770..108C}. 
+The mean and $\pm1\sigma$ mass step is plotted in Fig.~\ref{mass:fig}.  The results for the other parameters are pretty much unchanged from
+those shown in \S\ref{achromaticresults:sec}.
 
 \begin{figure}[htbp] %  figure placement: here, top, bottom, or page
    \centering
@@ -537,6 +530,7 @@ The mean and $\pm1\sigma$ mass step is plotted in Fig,~\ref{mass:fig}.
 
 The  model host masses are plotted  against the measured input in  Fig.~\ref{masses:fig}.
 There is no indication for strong bias between fit and measured host mass.
+
 
 \begin{figure}[htbp] %  figure placement: here, top, bottom, or page
    \centering
