@@ -68,7 +68,7 @@ def top():
     dm_sig = 0.1*(numpy.tan(fit['dm_sig_unif']))
     # dm_sig =fit['dm_sig_unif']
     c = ChainConsumer()
-    c.add_chain(numpy.concatenate((alpha_scale*fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
+    c.add_chain(numpy.concatenate((alpha_scale[None,:-1]*fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
         [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$",r'$\sigma_M$'],name='Master')
     fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
     fig.savefig("top.pdf",bbox_inches='tight')
@@ -161,9 +161,8 @@ def population():
 
 
 # orig()
-# top()
-population()
-# childress()
+top()
+# population()
 
 # c= ChainConsumer()
 # c.add_chain(numpy.concatenate((fit['snp_sig_unif'],fit['L_snp_sig_unif']),axis=1), parameters= \
