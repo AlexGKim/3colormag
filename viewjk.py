@@ -14,13 +14,17 @@ import matplotlib as mpl
 import sivel
 
 from chainconsumer import ChainConsumer
+param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
+alpha_scale =  0.05/param_sd;
 
 def one(index):
     f = open('jkout/jk{:03d}.pkl'.format(index),'rb')
     (fit,_) = pickle.load(f)
 
-    print fit['residual'].mean(), fit['residual'].std()
-    plt.hist(fit['residual'])
+    residual = fit['residual']
+
+    print residual.mean(), residual.std()
+    plt.hist(residual)
     plt.savefig(filename='jk.png')
 
 
@@ -37,7 +41,7 @@ def many(done):
     sig_m = []
     for i in done:
         f = open('jkout/jk{:03d}.pkl'.format(i),'rb')
-        (fit,_) = pickle.load(f)
+        fit = pickle.load(f)
 
         mn.append(fit['residual'].mean())
 
@@ -46,8 +50,8 @@ def many(done):
 
         # measured noise (without pv and dm)
         temp  = fit['delta_holdout']
-        for n in xrange(5):
-            temp = temp -  fit['alpha'][:,n] * fit['snparameters'][:,i-1,n] ; 
+        for n in xrange(4):
+            temp = temp -  alpha_scale[n]*fit['alpha'][:,n] * fit['snparameters'][:,i-1,n] ; 
         sig_m.append(temp.std())
 
     mn=numpy.array(mn)
@@ -56,27 +60,28 @@ def many(done):
 
     f, axarr = plt.subplots(2, sharex=True)
 
-    axarr[0].errorbar(xrange(len(done)),mn,yerr=[sig,sig],fmt='o',label='Total Uncertainty')
-    axarr[0].errorbar(xrange(len(done)),mn,yerr=[sig_m,sig_m],linestyle='None',label='Measurement Uncertainty')
+    axarr[0].errorbar(1+numpy.arange(len(done)),mn,yerr=[sig,sig],fmt='o',label='Total Uncertainty')
+    axarr[0].errorbar(1+numpy.arange(len(done)),mn,yerr=[sig_m,sig_m],linestyle='None',label='Measurement Uncertainty')
     axarr[0].set_xlim(-0.1, len(done)-.9)
     axarr[0].legend()
     axarr[0].set_ylabel(r'$\Delta_{.0}$ residual relative to SN 0 (mag)')
 
     m_w = numpy.sum(mn/sig**2) / numpy.sum(1/sig**2)
     pull = (mn-m_w)/sig
-    axarr[1].plot(pull,marker='o',linestyle='None')
+    axarr[1].plot(1+numpy.arange(len(done)),pull,marker='o',linestyle='None')
     axarr[1].axhline(1,linestyle='dashed')
     axarr[1].axhline(-1,linestyle='dashed')
     axarr[1].set_ylabel('pull')
     axarr[1].set_xlabel('SN index')
-    plt.savefi('jkresiduals.png')
+    plt.subplots_adjust(hspace=0.1)
+    plt.xlim((0,max(done)+1))
+    plt.savefig('jkresiduals.png')
 
 # one(1)
-# wefwe
 
-done = numpy.arange(168,171,dtype='int')
-done = numpy.append(done,1)
-many(done)
-wefe
+# done = numpy.arange(168,171,dtype='int')
+# done = numpy.append(done,1)
+many(xrange(1,30))
+
 
 

@@ -16,7 +16,8 @@ import sivel
 from chainconsumer import ChainConsumer
 
 param_sd = numpy.array([ 27,  6.9,  20,   0.98,   0.029])
-cauchy_tau = 4 * param_sd     
+cauchy_tau = 4 * param_sd 
+alpha_scale =  0.05/param_sd;
 
 # input from data
 pkl_file = open('gege_data.pkl', 'r')
@@ -30,7 +31,7 @@ pkl_file = open('fix3_x1.pkl', 'r')
 pkl_file.close()
 
 # input from results
-f = open('c2mag.pkl','rb')
+f = open('c2.pkl','rb')
 fit = pickle.load(f)
 
 def orig():
@@ -67,9 +68,7 @@ def top():
     dm_sig = 0.1*(numpy.tan(fit['dm_sig_unif']))
     # dm_sig =fit['dm_sig_unif']
     c = ChainConsumer()
-    # c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
-        # [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$", r"$\alpha_{A_{V,p}}$",r'$\sigma_M$'],name='Master')
-    c.add_chain(numpy.concatenate((fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
+    c.add_chain(numpy.concatenate((alpha_scale*fit['alpha'],dm_sig[:,None]),axis=1), parameters= \
         [r"$\alpha_{EW_{Ca}}$", r"$\alpha_{EW_{Si}}$", r"$\alpha_{\lambda_{Si}}$", r"$\alpha_{x_1}$",r'$\sigma_M$'],name='Master')
     fig =  c.plotter.plot(figsize="column", truth=numpy.zeros(6))
     fig.savefig("top.pdf",bbox_inches='tight')
@@ -139,7 +138,7 @@ def population():
     bins = 1e-5 * 10.**numpy.arange(1,3.8,0.05)
     plt.hist([cauchy_tau[-1]*numpy.tan(fit['L_snp_sig_unif'][:,-1]), p_par_sig],bins=bins, \
         label=[r"$\sigma_{{A_{V,p\,.0}}}$ posterior", r"Input $A_{V,p\,.0}$ Uncertainty"],normed=True)
-    plt.axvline(param_sd[-1])
+    plt.axvline(param_sd[-1],color='black')
     plt.legend()
     plt.savefig("sigma_p.pdf",bbox_inches='tight')
 
@@ -161,44 +160,9 @@ def population():
     fig.savefig("population.pdf",bbox_inches='tight')
 
 
-
-def childress():
-
-    fiveoverlog10 = 5/numpy.log(10)
-
-    dm = numpy.mean(color['Delta']-color['Delta'][:,0][:,None],axis=0)
-    dm = dm[1:]
-    mn = numpy.mean(fit['mn_Delta'],axis=0)
-
-    res = dm-mn
-
-    # get Childress Masses
-    f = open('MJC_compile_SNdata.pkl','r')
-    gal= pickle.load(f)
-
-    # match objects with masses
-    names= numpy.array(data['snlist'])[1:]
-
-    i = numpy.intersect1d(names, gal.keys(), assume_unique=True)
-
-    inda = numpy.zeros(len(i),dtype='int')    
-
-    mass=[]
-    emass = []
-    for j in xrange(len(i)):
-        inda[j] = numpy.where(names == i[j])[0]
-        emass.append(gal[i[j]]['eMass'])
-        mass.append(gal[i[j]]['Mass'])
-
-    mass = numpy.array(mass)
-    emass= numpy.array(emass)
-
-    plt.scatter(mass, res[inda])
-    plt.show()
-
 # orig()
-top()
-#population()
+# top()
+population()
 # childress()
 
 # c= ChainConsumer()

@@ -90,25 +90,30 @@ names= numpy.array(data['snlist'])
 inda = []
 mass = []
 emass = []
+nms=[]
 for ind, nam in enumerate(names):
    if nam in gal.keys():
       inda.append(ind)
       mass.append(gal[nam]['Mass'])
       emass.append(gal[nam]['eMass'])
+      nms.append(nam)
 
 inda = numpy.array(inda)
 emass = numpy.array(emass)
 mass = numpy.array(mass)
+nms = numpy.array(nms)
 
 # the first galaxy has a mass
 print 'first in list with a host mass ', inda[0]
 mass0 = mass[0]
 emass0 = emass[0]
+nm0 = nms[0]
 
 # what was the second sn indexed by 1 is no the first supernova indexed by 0 in python but by 1 in STAN
 inda = inda[1:]
 mass = mass[1:]
 emass=emass[1:]
+nms = nms[1:]
 indapy = inda-1
 
 def view():
@@ -139,13 +144,16 @@ def view():
    (step,stepm,stepp)= numpy.percentile(data['stephigh'],(50,50-34,50+34),axis=0)/2
    zterm = numpy.mean(data['zeroterm'] + data['stephigh']/2*numpy.tanh(10*(data['mass0_0']-10)))
    plt.plot(x,step*numpy.tanh(10*(x-10))-zterm,color='black')
-   plt.plot(x,stepm*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='r')
-   plt.plot(x,stepp*numpy.tanh(10*(x-10))-zterm,linestyle=':',color='g')
+   plt.plot(x,stepm*numpy.tanh(10*(x-10))-zterm,linestyle='--',color='r')
+   plt.plot(x,stepp*numpy.tanh(10*(x-10))-zterm,linestyle='--',color='g')
    plt.ylabel(r'Relative magnitude offset $\vec{\Delta}_{.0} - \mu[0:N]$ (mag)')
    plt.xlabel(r'$\log{(M_{\mathrm{host}}/M_{\odot})}$')
    plt.xlim((6.8,13))
    plt.savefig("mass.pdf",bbox_inches='tight')
 
+   # the outlier
+   print "outlier ", nms[res > 0.5],names[inda[res>0.5]], zcmb[inda[res>0.5]-1],zerr[inda[res>0.5]-1]
+   
    plt.clf()
    (fitmass,fitmassm,fitmassp) = numpy.percentile(data['mass_0'],(50,50-34,50+34),axis=0)
    plt.errorbar(mass,fitmass,xerr=[emass,emass],yerr=[fitmass-fitmassm, fitmassp-fitmass],linestyle='None',alpha=0.5,color='b')

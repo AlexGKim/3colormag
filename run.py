@@ -7,8 +7,8 @@ import pystan
 import sivel
 
 # input from first try
-f = open('c2_noalpha.pkl','rb')
-(first,_) = pickle.load(f)
+f = open('c2.pkl','rb')
+first = pickle.load(f)
 
 # input from previous fit
 f = open('fix3_x1.pkl','rb')
@@ -45,83 +45,102 @@ mega = numpy.array(mega)
 
 D = D-1
 
-# Initial condition is that Delta is partially due to intrinsic dispersion ...
-dm = numpy.mean(fit['Delta'],axis=0)
-w = dm < 0.3
-dm_prior = dm / dm[w].std()
-w = dm > 0.3
-dm_prior[w]=0
+def raw():
+   import matplotlib.pyplot as plt
+   megaperc = numpy.percentile(mega,(50,50-34,50+34),axis=2)
+   fig, ax = plt.subplots(nrows=5, figsize=(6, 9.6),sharex=True)
+   ylabels=[r"${EW}_{\mathit{Ca}\,.0}$",r"$EW_{\mathit{Si},\,.0}$",r"${\lambda}_{\mathit{Si},\,.0}$",r"${x}_{1\,.0}$",r"${A}_{V,p\,.0}$"]
+   for i in xrange(5):
+      ax[i].errorbar(megaperc[0,:,0],megaperc[0,:,i+1], \
+         yerr=[megaperc[0,:,i+1]-megaperc[1,:,i+1],megaperc[2,:,i+1]-megaperc[0,:,i+1]], \
+         xerr=[megaperc[0,:,0]-megaperc[1,:,0],megaperc[2,:,0]-megaperc[0,:,0]],linestyle='None',alpha=0.5,markersize=4,marker='o')
+      ax[i].set_ylabel(ylabels[i])  
+   ax[-1].set_xlabel(r"$\Delta_{.0}$")
 
-# Initial condition is that pv is partially responsible for the intrinsic dispersion
-pv_prior = (zcmb*dm)/(zcmb*dm).std()
-# ... except for extreme guys where it is entirely
-pv_prior[w] = (numpy.log(10)/5*zcmb[w]*dm[w])/(300./3e5)
+   plt.subplots_adjust(hspace=0.1)
+   plt.savefig("input.pdf",bbox_inches='tight')
 
-# initial condition of the sn parameters are the measurement
-snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
-snparameters_sig = numpy.std(snparameters,axis=0)
-snparameters_mn = numpy.mean(snparameters,axis=0)
+def run():
+   # Initial condition is that Delta is partially due to intrinsic dispersion ...
+   dm = numpy.mean(fit['Delta'],axis=0)
+   w = dm < 0.3
+   dm_prior = dm / dm[w].std()
+   w = dm > 0.3
+   dm_prior[w]=0
 
-snparameters_alpha_prior = (snparameters - snparameters_mn[None,:])/snparameters_sig
+   # Initial condition is that pv is partially responsible for the intrinsic dispersion
+   pv_prior = (zcmb*dm)/(zcmb*dm).std()
+   # ... except for extreme guys where it is entirely
+   pv_prior[w] = (numpy.log(10)/5*zcmb[w]*dm[w])/(300./3e5)
 
-mega = numpy.reshape(mega,(D*N,mega.shape[2]),order='F')
-print "Showing that it is (feature 1 SN1, feature 1 SN2, ... feature 1 SN D, feature 2 SN 1, ...)"
-print fit['Delta'][0,1]-fit['Delta'][0,0],fit['Delta'][0,2]-fit['Delta'][0,0], fit['EW'][0,1,0]-fit['EW'][0,0,0]
-print mega[0,0],mega[1,0],mega[D,0]
+   # initial condition of the sn parameters are the measurement
+   snparameters = numpy.mean(mega[:,1:,:],axis=2)  # shape (D,5)
+   snparameters_sig = numpy.std(snparameters,axis=0)
+   snparameters_mn = numpy.mean(snparameters,axis=0)
 
-meas = numpy.mean(mega,axis=1)
-meascov = numpy.cov(mega,rowvar=True)
+   snparameters_alpha_prior = (snparameters - snparameters_mn[None,:])/snparameters_sig
 
-zcmb0=zcmb[0]
-zcmb=zcmb[1:]
+   mega = numpy.reshape(mega,(D*N,mega.shape[2]),order='F')
+   print "Showing that it is (feature 1 SN1, feature 1 SN2, ... feature 1 SN D, feature 2 SN 1, ...)"
+   print fit['Delta'][0,1]-fit['Delta'][0,0],fit['Delta'][0,2]-fit['Delta'][0,0], fit['EW'][0,1,0]-fit['EW'][0,0,0]
+   print mega[0,0],mega[1,0],mega[D,0]
 
-zerr0=zerr[0]
-zerr = zerr[1:]
-data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
-   'zerr':zerr, 'zerr0': zerr0, 'param_sd': param_sd}
+   meas = numpy.mean(mega,axis=1)
+   meascov = numpy.cov(mega,rowvar=True)
 
-#null out the alpha for the p-component
-firstalpha = first['alpha'][:,:-1]
 
-firstL_snp_sig_unif= first['L_snp_sig_unif']
-firstL_snp_sig_unif[:,-1] = numpy.pi/8
+   zcmb0=zcmb[0]
+   zcmb=zcmb[1:]
 
-nchain =8
-init = [{
-   # 'alpha': numpy.zeros(N-1) , \
-   # 'pv_unit': pv_prior[1:] ,\
-   # 'pv0_unit': pv_prior[0] ,\
-   # 'dm_sig_unif' : 0., \
-   # 'dm_unit':   dm_prior[1:],\
-   # 'dm0_unit':  dm_prior[0] ,\
-   # # # 'z_true': zcmb, \
-   # # # 'z0_true': zcmb0, \
-   # 'snparameters_alpha' :snparameters_alpha_prior,\
-   'L_snp_cor': numpy.identity(N-1), \
-   # # first sigmas are cauchy_tau*0.25
-   # 'L_snp_sig_unif': numpy.zeros(N-1)+numpy.arctan(0.25) ,\
-   # 'snp_mn': snparameters_mn \
-   # 'snparameters': snparameters\
-   'alpha': firstalpha.mean(axis=0)+numpy.random.normal(0,firstalpha.std(axis=0)), \
-   'pv_unit': first['pv_unit'].mean(axis=0)+numpy.random.normal(0,first['pv_unit'].std(axis=0)), \
-   'pv0_unit': first['pv0_unit'].mean(axis=0)+numpy.random.normal(0,first['pv0_unit'].std(axis=0)),\
-   'dm_sig_unif' : first['dm_sig_unif'].mean(axis=0)+numpy.random.normal(0,first['dm_sig_unif'].std(axis=0)), \
-   'dm_unit':   first['dm_unit'].mean(axis=0)+numpy.random.normal(0,first['dm_unit'].std(axis=0)),\
-   'dm0_unit':  first['dm0_unit'].mean(axis=0)+numpy.random.normal(0,first['dm0_unit'].std(axis=0)),\
-   'snparameters_alpha' :first['snparameters_alpha'].mean(axis=0)+numpy.random.normal(0,first['snparameters_alpha'].std(axis=0)),\
-   'L_snp_sig_unif': firstL_snp_sig_unif.mean(axis=0)+numpy.random.normal(0,firstL_snp_sig_unif.std(axis=0)),\
-   'snp_mn': first['snp_mn'].mean(axis=0)+numpy.random.normal(0,first['snp_mn'].std(axis=0)) \
-   } \
-for _ in range(nchain)]
+   zerr0=zerr[0]
+   zerr = zerr[1:]
+   data = {'D': D, 'N': N, 'meas': meas, 'meascov': meascov, 'zcmb':zcmb, 'zcmb0':zcmb0, \
+      'zerr':zerr, 'zerr0': zerr0, 'param_sd': param_sd}
 
-sm = pystan.StanModel(file='c2.stan')
-control = {'stepsize':1}
-fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+   #null out the alpha for the p-component
+   firstalpha = first['alpha'][:,:-1]
 
-output = open('c2.pkl','wb')
-ans = fit.extract()
-ans['mn_Delta']=ans['mn'][:,:D]
-del ans['mn']
-pickle.dump(ans, output, protocol=2)
-output.close()
-print fit
+   firstL_snp_sig_unif= first['L_snp_sig_unif']
+   firstL_snp_sig_unif[:,-1] = numpy.pi/8
+
+   nchain =8
+   init = [{
+      # 'alpha': numpy.zeros(N-1) , \
+      # 'pv_unit': pv_prior[1:] ,\
+      # 'pv0_unit': pv_prior[0] ,\
+      # 'dm_sig_unif' : 0., \
+      # 'dm_unit':   dm_prior[1:],\
+      # 'dm0_unit':  dm_prior[0] ,\
+      # # # 'z_true': zcmb, \
+      # # # 'z0_true': zcmb0, \
+      # 'snparameters_alpha' :snparameters_alpha_prior,\
+      'L_snp_cor': numpy.identity(N-1), \
+      # # first sigmas are cauchy_tau*0.25
+      # 'L_snp_sig_unif': numpy.zeros(N-1)+numpy.arctan(0.25) ,\
+      # 'snp_mn': snparameters_mn \
+      # 'snparameters': snparameters\
+      'alpha': firstalpha.mean(axis=0)+numpy.random.normal(0,firstalpha.std(axis=0)), \
+      'pv_unit': first['pv_unit'].mean(axis=0)+numpy.random.normal(0,first['pv_unit'].std(axis=0)), \
+      'pv0_unit': first['pv0_unit'].mean(axis=0)+numpy.random.normal(0,first['pv0_unit'].std(axis=0)),\
+      'dm_sig_unif' : first['dm_sig_unif'].mean(axis=0)+numpy.random.normal(0,first['dm_sig_unif'].std(axis=0)), \
+      'dm_unit':   first['dm_unit'].mean(axis=0)+numpy.random.normal(0,first['dm_unit'].std(axis=0)),\
+      'dm0_unit':  first['dm0_unit'].mean(axis=0)+numpy.random.normal(0,first['dm0_unit'].std(axis=0)),\
+      'snparameters_alpha' :first['snparameters_alpha'].mean(axis=0)+numpy.random.normal(0,first['snparameters_alpha'].std(axis=0)),\
+      'L_snp_sig_unif': firstL_snp_sig_unif.mean(axis=0)+numpy.random.normal(0,firstL_snp_sig_unif.std(axis=0)),\
+      'snp_mn': first['snp_mn'].mean(axis=0)+numpy.random.normal(0,first['snp_mn'].std(axis=0)) \
+      } \
+   for _ in range(nchain)]
+
+   sm = pystan.StanModel(file='c2.stan')
+   control = {'stepsize':1}
+   fit = sm.sampling(data=data, iter=2000, chains=nchain,control=control,init=init, thin=1)
+
+   output = open('c2.pkl','wb')
+   ans = fit.extract()
+   ans['mn_Delta']=ans['mn'][:,:D]
+   del ans['mn']
+   pickle.dump(ans, output, protocol=2)
+   output.close()
+   print fit
+
+raw()
